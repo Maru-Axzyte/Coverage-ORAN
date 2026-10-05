@@ -1,0 +1,610 @@
+{
+  "assumptions": {
+    "uavs": 3,
+    "ues": 15,
+    "system_max_prbs": 100,
+    "area_m": [
+      2000.0,
+      2000.0
+    ],
+    "ue_distribution": "uniform",
+    "height_choices_m": [
+      160.0,
+      180.0,
+      200.0,
+      220.0,
+      240.0
+    ],
+    "theta_choices_deg": [
+      35.0,
+      40.0,
+      45.0,
+      50.0,
+      55.0
+    ],
+    "generations": 3,
+    "active_population": 8,
+    "population_capacity": 80,
+    "per_uav_prb_budgets": [
+      100,
+      100,
+      100
+    ],
+    "prb_bandwidth_hz": 360000.0,
+    "uav_max_power_w": 1.5,
+    "ue_demands_mbps": [
+      5.0,
+      10.0,
+      15.0
+    ],
+    "seed": 2026
+  },
+  "csaea_we_before_cma": {
+    "generation": 3,
+    "fitness": -0.1206372012226101,
+    "violation": 3.552713678800501e-16,
+    "served_ues": 9,
+    "served_fraction": 0.6,
+    "service_score": 0.6,
+    "power_w": 0.8186022165052363,
+    "prbs": 18.0,
+    "power_ratio": 0.2102197088525486,
+    "prb_ratio": 0.18,
+    "bottleneck_pressure": 0.0,
+    "idle_redeployment_pressure": 0.0,
+    "exact_evaluations": 7,
+    "genome": [
+      [
+        1065.1497395737783,
+        687.631063179565,
+        239.99999999999997,
+        55.0
+      ],
+      [
+        289.0854159408983,
+        1465.2085363805327,
+        225.43207505602714,
+        54.99999999999999
+      ],
+      [
+        1744.0521732271607,
+        1587.3454731912968,
+        240.0,
+        55.0
+      ]
+    ],
+    "epsilon": 0.0,
+    "resource_weights": [
+      0.3333333333333333,
+      0.3333333333333333,
+      0.3333333333333333
+    ]
+  },
+  "hybrid_we_exact_cma": {
+    "stage": "SA-CMA-1",
+    "exact_evaluations": 11,
+    "fitness": -0.12081858457609995,
+    "violation": 0.0,
+    "served_ues": 9,
+    "served_fraction": 0.6,
+    "service_score": 0.6,
+    "power_w": 0.8186022165052363,
+    "prbs": 18.0,
+    "power_ratio": 0.2102197088525486,
+    "prb_ratio": 0.18,
+    "bottleneck_pressure": 0.0,
+    "idle_redeployment_pressure": 0.0,
+    "sigma": 0.07567532756382157,
+    "covariance_condition": 1.0,
+    "improved": false,
+    "genome": [
+      [
+        1065.1497395737783,
+        687.631063179565,
+        239.99999999999997,
+        55.0
+      ],
+      [
+        289.0854159408983,
+        1465.2085363805327,
+        225.43207505602714,
+        54.99999999999999
+      ],
+      [
+        1744.0521732271607,
+        1587.3454731912968,
+        240.0,
+        55.0
+      ]
+    ],
+    "resource_weights": [
+      0.33530678767698063,
+      0.33234660616150963,
+      0.3323466061615097
+    ]
+  },
+  "we_incumbent_history": [
+    {
+      "generation": 0,
+      "fitness": -0.0896993048524402,
+      "violation": 0.0,
+      "served_ues": 8,
+      "served_fraction": 0.5333333333333333,
+      "service_score": 0.5,
+      "power_w": 0.5359406155079428,
+      "prbs": 15.0,
+      "power_ratio": 0.2102197088525486,
+      "prb_ratio": 0.15,
+      "bottleneck_pressure": 0.0,
+      "idle_redeployment_pressure": 0.0,
+      "exact_evaluations": 4,
+      "genome": [
+        [
+          1065.1497395737783,
+          687.6310631795651,
+          240.0,
+          55.0
+        ],
+        [
+          289.0854159408983,
+          1371.1720874526543,
+          240.0,
+          55.0
+        ],
+        [
+          1744.0521732271607,
+          1587.3454731912968,
+          240.0,
+          55.0
+        ]
+      ],
+      "epsilon": 1.0,
+      "resource_weights": [
+        0.3333333333333333,
+        0.3333333333333333,
+        0.3333333333333333
+      ]
+    },
+    {
+      "generation": 1,
+      "fitness": -0.1206372012226101,
+      "violation": 3.552713678800501e-16,
+      "served_ues": 9,
+      "served_fraction": 0.6,
+      "service_score": 0.6,
+      "power_w": 0.8186022165052363,
+      "prbs": 18.0,
+      "power_ratio": 0.2102197088525486,
+      "prb_ratio": 0.18,
+      "bottleneck_pressure": 0.0,
+      "idle_redeployment_pressure": 0.0,
+      "exact_evaluations": 5,
+      "genome": [
+        [
+          1065.1497395737783,
+          687.631063179565,
+          239.99999999999997,
+          55.0
+        ],
+        [
+          289.0854159408983,
+          1465.2085363805327,
+          225.43207505602714,
+          54.99999999999999
+        ],
+        [
+          1744.0521732271607,
+          1587.3454731912968,
+          240.0,
+          55.0
+        ]
+      ],
+      "epsilon": 0.0005534328365087281,
+      "resource_weights": [
+        0.3333333333333333,
+        0.3333333333333333,
+        0.3333333333333333
+      ]
+    },
+    {
+      "generation": 2,
+      "fitness": -0.1206372012226101,
+      "violation": 3.552713678800501e-16,
+      "served_ues": 9,
+      "served_fraction": 0.6,
+      "service_score": 0.6,
+      "power_w": 0.8186022165052363,
+      "prbs": 18.0,
+      "power_ratio": 0.2102197088525486,
+      "prb_ratio": 0.18,
+      "bottleneck_pressure": 0.0,
+      "idle_redeployment_pressure": 0.0,
+      "exact_evaluations": 6,
+      "genome": [
+        [
+          1065.1497395737783,
+          687.631063179565,
+          239.99999999999997,
+          55.0
+        ],
+        [
+          289.0854159408983,
+          1465.2085363805327,
+          225.43207505602714,
+          54.99999999999999
+        ],
+        [
+          1744.0521732271607,
+          1587.3454731912968,
+          240.0,
+          55.0
+        ]
+      ],
+      "epsilon": 0.0,
+      "resource_weights": [
+        0.3333333333333333,
+        0.3333333333333333,
+        0.3333333333333333
+      ]
+    },
+    {
+      "generation": 3,
+      "fitness": -0.1206372012226101,
+      "violation": 3.552713678800501e-16,
+      "served_ues": 9,
+      "served_fraction": 0.6,
+      "service_score": 0.6,
+      "power_w": 0.8186022165052363,
+      "prbs": 18.0,
+      "power_ratio": 0.2102197088525486,
+      "prb_ratio": 0.18,
+      "bottleneck_pressure": 0.0,
+      "idle_redeployment_pressure": 0.0,
+      "exact_evaluations": 7,
+      "genome": [
+        [
+          1065.1497395737783,
+          687.631063179565,
+          239.99999999999997,
+          55.0
+        ],
+        [
+          289.0854159408983,
+          1465.2085363805327,
+          225.43207505602714,
+          54.99999999999999
+        ],
+        [
+          1744.0521732271607,
+          1587.3454731912968,
+          240.0,
+          55.0
+        ]
+      ],
+      "epsilon": 0.0,
+      "resource_weights": [
+        0.3333333333333333,
+        0.3333333333333333,
+        0.3333333333333333
+      ]
+    }
+  ],
+  "weight_learning_history": [
+    {
+      "stage": "WE-0",
+      "archive_size": 4,
+      "new_pairs": 0,
+      "training_pairs": 0,
+      "status": "insufficient_exact_pairs",
+      "mean_pair_loss": null,
+      "context": [
+        1.0,
+        0.5333333333333333,
+        0.11909791455732062,
+        0.15
+      ],
+      "weights": [
+        0.3333333333333333,
+        0.3333333333333333,
+        0.3333333333333333
+      ],
+      "vartheta": [
+        [
+          0.3333333333333333,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.3333333333333333,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.3333333333333333,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "stage": "SA-CMA-1",
+      "archive_size": 11,
+      "new_pairs": 3,
+      "training_pairs": 3,
+      "status": "optimal",
+      "mean_pair_loss": 0.0006100726513953378,
+      "context": [
+        1.0,
+        0.6,
+        0.1819116036678303,
+        0.18
+      ],
+      "weights": [
+        0.33530678767698063,
+        0.33234660616150963,
+        0.3323466061615097
+      ],
+      "vartheta": [
+        [
+          0.3347177357561858,
+          0.0008306414522547269,
+          0.0002518388625694758,
+          0.0002491924338163079
+        ],
+        [
+          0.3326411321219079,
+          -0.00041532072612708793,
+          -0.00012591943128417122,
+          -0.00012459621690761723
+        ],
+        [
+          0.3326411321219079,
+          -0.00041532072612688285,
+          -0.00012591943128423272,
+          -0.00012459621690761723
+        ]
+      ]
+    }
+  ],
+  "learned_vartheta": [
+    [
+      0.3347177357561858,
+      0.0008306414522547269,
+      0.0002518388625694758,
+      0.0002491924338163079
+    ],
+    [
+      0.3326411321219079,
+      -0.00041532072612708793,
+      -0.00012591943128417122,
+      -0.00012459621690761723
+    ],
+    [
+      0.3326411321219079,
+      -0.00041532072612688285,
+      -0.00012591943128423272,
+      -0.00012459621690761723
+    ]
+  ],
+  "cma_history": [
+    {
+      "stage": "SA-CMA-1",
+      "exact_evaluations": 11,
+      "fitness": -0.12081858457609995,
+      "violation": 0.0,
+      "served_ues": 9,
+      "served_fraction": 0.6,
+      "service_score": 0.6,
+      "power_w": 0.8186022165052363,
+      "prbs": 18.0,
+      "power_ratio": 0.2102197088525486,
+      "prb_ratio": 0.18,
+      "bottleneck_pressure": 0.0,
+      "idle_redeployment_pressure": 0.0,
+      "sigma": 0.07567532756382157,
+      "covariance_condition": 1.0,
+      "improved": false,
+      "genome": [
+        [
+          1065.1497395737783,
+          687.631063179565,
+          239.99999999999997,
+          55.0
+        ],
+        [
+          289.0854159408983,
+          1465.2085363805327,
+          225.43207505602714,
+          54.99999999999999
+        ],
+        [
+          1744.0521732271607,
+          1587.3454731912968,
+          240.0,
+          55.0
+        ]
+      ],
+      "resource_weights": [
+        0.33530678767698063,
+        0.33234660616150963,
+        0.3323466061615097
+      ]
+    }
+  ],
+  "final_milp": {
+    "total_power_w": 0.8186022165052363,
+    "total_num_prbs": 18,
+    "served_ue_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      8,
+      11,
+      12,
+      13
+    ],
+    "milp": {
+      "uav_mode_choices": [
+        {
+          "u": 0,
+          "k": 1,
+          "placement": 0,
+          "power_index": 3,
+          "num_prbs": 2,
+          "power_w": 0.12589254117941673,
+          "rate_mbps": 10.293266502000211,
+          "sinr_linear": 20117.058658408965,
+          "uav_id": 0,
+          "ue_id": 1,
+          "placement_id": 0
+        },
+        {
+          "u": 0,
+          "k": 3,
+          "placement": 0,
+          "power_index": 1,
+          "num_prbs": 1,
+          "power_w": 0.03162277660168379,
+          "rate_mbps": 5.096912046947067,
+          "sinr_linear": 18280.401048144187,
+          "uav_id": 0,
+          "ue_id": 3,
+          "placement_id": 0
+        },
+        {
+          "u": 0,
+          "k": 8,
+          "placement": 0,
+          "power_index": 1,
+          "num_prbs": 1,
+          "power_w": 0.03162277660168379,
+          "rate_mbps": 5.3543570691195965,
+          "sinr_linear": 30010.214457171587,
+          "uav_id": 0,
+          "ue_id": 8,
+          "placement_id": 0
+        },
+        {
+          "u": 0,
+          "k": 11,
+          "placement": 0,
+          "power_index": 2,
+          "num_prbs": 2,
+          "power_w": 0.06309573444801933,
+          "rate_mbps": 10.492112329783346,
+          "sinr_linear": 24361.561987759203,
+          "uav_id": 0,
+          "ue_id": 11,
+          "placement_id": 0
+        },
+        {
+          "u": 0,
+          "k": 13,
+          "placement": 0,
+          "power_index": 2,
+          "num_prbs": 3,
+          "power_w": 0.06309573444801933,
+          "rate_mbps": 15.613280221877247,
+          "sinr_linear": 22485.02371424967,
+          "uav_id": 0,
+          "ue_id": 13,
+          "placement_id": 0
+        },
+        {
+          "u": 1,
+          "k": 0,
+          "placement": 1,
+          "power_index": 2,
+          "num_prbs": 2,
+          "power_w": 0.06309573444801933,
+          "rate_mbps": 10.639490569924089,
+          "sinr_linear": 28075.39792883378,
+          "uav_id": 1,
+          "ue_id": 0,
+          "placement_id": 1
+        },
+        {
+          "u": 1,
+          "k": 12,
+          "placement": 1,
+          "power_index": 4,
+          "num_prbs": 3,
+          "power_w": 0.251188643150958,
+          "rate_mbps": 15.960216587622194,
+          "sinr_linear": 28093.075819936435,
+          "uav_id": 1,
+          "ue_id": 12,
+          "placement_id": 1
+        },
+        {
+          "u": 2,
+          "k": 2,
+          "placement": 2,
+          "power_index": 3,
+          "num_prbs": 3,
+          "power_w": 0.12589254117941673,
+          "rate_mbps": 15.499862286736734,
+          "sinr_linear": 20906.3753266815,
+          "uav_id": 2,
+          "ue_id": 2,
+          "placement_id": 2
+        },
+        {
+          "u": 2,
+          "k": 4,
+          "placement": 2,
+          "power_index": 2,
+          "num_prbs": 1,
+          "power_w": 0.06309573444801933,
+          "rate_mbps": 5.194490390878106,
+          "sinr_linear": 22058.92055179999,
+          "uav_id": 2,
+          "ue_id": 4,
+          "placement_id": 2
+        }
+      ],
+      "num_ues_served": 9,
+      "total_num_prbs": 18,
+      "total_power_w": 0.8186022165052363,
+      "selected_placement_indices": [
+        0,
+        1,
+        2
+      ],
+      "power_by_uav_w": [
+        0.3153295632788229,
+        0.3142843775989773,
+        0.18898827562743606
+      ],
+      "system_prb_budget": 100,
+      "orthogonal_prb_pool": true
+    },
+    "evaluated_genome": [
+      [
+        1065.1497395737783,
+        687.631063179565,
+        239.99999999999997,
+        55.0
+      ],
+      [
+        289.0854159408983,
+        1465.2085363805327,
+        225.43207505602714,
+        54.99999999999999
+      ],
+      [
+        1744.0521732271607,
+        1587.3454731912968,
+        240.0,
+        55.0
+      ]
+    ]
+  },
+  "all_steps_figure": "tmp\\we_theory_smoke_all_steps.png",
+  "note": "Every reported incumbent was evaluated by the fixed-placement HiGHS MILP with one globally orthogonal 100-PRB pool and local 1.5-W UAV power limits."
+}

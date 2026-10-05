@@ -1,0 +1,434 @@
+{
+  "assumptions": {
+    "uavs": 4,
+    "ues": 30,
+    "system_max_prbs": 135,
+    "per_uav_prb_budgets": [
+      34,
+      34,
+      34,
+      33
+    ],
+    "prb_bandwidth_hz": 360000.0,
+    "uav_max_power_w": 2.0,
+    "ue_demands_mbps": [
+      5.0,
+      10.0,
+      15.0
+    ],
+    "seed": 2026
+  },
+  "ga_baseline": {
+    "generation": 8,
+    "fitness": 17.49294394144147,
+    "violation": 0.0,
+    "served_ues": 18,
+    "power_w": 7.021381481480386,
+    "prbs": 128.0,
+    "exact_evaluations": 12,
+    "genome": [
+      [
+        941.101251049177,
+        726.6925631086735,
+        300.0,
+        60.0
+      ],
+      [
+        1839.8200200734082,
+        419.85793880150334,
+        300.0,
+        60.0
+      ],
+      [
+        344.528465097306,
+        1228.3449431191639,
+        300.0,
+        60.0
+      ],
+      [
+        771.4787814877918,
+        1576.152753232309,
+        300.0,
+        60.0
+      ]
+    ]
+  },
+  "csaea_we_before_cma": {
+    "generation": 4,
+    "fitness": 17.49294394144147,
+    "violation": 0.0,
+    "served_ues": 18,
+    "power_w": 7.021381481480386,
+    "prbs": 128.0,
+    "exact_evaluations": 8,
+    "genome": [
+      [
+        941.101251049177,
+        726.6925631086735,
+        300.0,
+        60.0
+      ],
+      [
+        1839.8200200734082,
+        419.85793880150334,
+        300.0,
+        60.0
+      ],
+      [
+        344.528465097306,
+        1228.3449431191639,
+        300.0,
+        60.0
+      ],
+      [
+        771.4787814877918,
+        1576.152753232309,
+        300.0,
+        60.0
+      ]
+    ]
+  },
+  "hybrid_we_exact_cma": {
+    "stage": "CMA-1",
+    "exact_evaluations": 13,
+    "fitness": 17.49294394144147,
+    "violation": 0.0,
+    "served_ues": 18,
+    "power_w": 7.021381481480386,
+    "prbs": 128.0,
+    "sigma": 0.08639999999999999,
+    "improved": false,
+    "genome": [
+      [
+        941.101251049177,
+        726.6925631086735,
+        300.0,
+        60.0
+      ],
+      [
+        1839.8200200734082,
+        419.85793880150334,
+        300.0,
+        60.0
+      ],
+      [
+        344.528465097306,
+        1228.3449431191639,
+        300.0,
+        60.0
+      ],
+      [
+        771.4787814877918,
+        1576.152753232309,
+        300.0,
+        60.0
+      ]
+    ]
+  },
+  "final_milp": {
+    "total_power_w": 7.021381481480386,
+    "total_num_prbs": 128,
+    "served_ue_ids": [
+      0,
+      2,
+      3,
+      5,
+      6,
+      7,
+      8,
+      10,
+      11,
+      12,
+      13,
+      15,
+      17,
+      19,
+      23,
+      25,
+      26,
+      28
+    ],
+    "milp": {
+      "uav_mode_choices": [
+        {
+          "u": 0,
+          "k": 3,
+          "placement": 0,
+          "power_index": 4,
+          "num_prbs": 4,
+          "power_w": 0.251188643150958,
+          "rate_mbps": 5.0711424202549855,
+          "sinr_linear": 10.484583889833818,
+          "uav_id": 0,
+          "ue_id": 3,
+          "placement_id": 0
+        },
+        {
+          "u": 0,
+          "k": 8,
+          "placement": 0,
+          "power_index": 4,
+          "num_prbs": 9,
+          "power_w": 0.251188643150958,
+          "rate_mbps": 10.464780749877272,
+          "sinr_linear": 8.381838080410304,
+          "uav_id": 0,
+          "ue_id": 8,
+          "placement_id": 0
+        },
+        {
+          "u": 0,
+          "k": 17,
+          "placement": 0,
+          "power_index": 4,
+          "num_prbs": 6,
+          "power_w": 0.251188643150958,
+          "rate_mbps": 5.3252157240052655,
+          "sinr_linear": 4.522714889087853,
+          "uav_id": 0,
+          "ue_id": 17,
+          "placement_id": 0
+        },
+        {
+          "u": 0,
+          "k": 19,
+          "placement": 0,
+          "power_index": 5,
+          "num_prbs": 7,
+          "power_w": 0.5011872336272722,
+          "rate_mbps": 10.342023723654183,
+          "sinr_linear": 16.19572058622114,
+          "uav_id": 0,
+          "ue_id": 19,
+          "placement_id": 0
+        },
+        {
+          "u": 0,
+          "k": 28,
+          "placement": 0,
+          "power_index": 5,
+          "num_prbs": 5,
+          "power_w": 0.5011872336272722,
+          "rate_mbps": 5.1223732231359085,
+          "sinr_linear": 6.18885946996001,
+          "uav_id": 0,
+          "ue_id": 28,
+          "placement_id": 0
+        },
+        {
+          "u": 1,
+          "k": 0,
+          "placement": 1,
+          "power_index": 4,
+          "num_prbs": 3,
+          "power_w": 0.251188643150958,
+          "rate_mbps": 5.359226919834793,
+          "sinr_linear": 30.17347646224322,
+          "uav_id": 1,
+          "ue_id": 0,
+          "placement_id": 1
+        },
+        {
+          "u": 1,
+          "k": 5,
+          "placement": 1,
+          "power_index": 4,
+          "num_prbs": 8,
+          "power_w": 0.251188643150958,
+          "rate_mbps": 15.53312842432869,
+          "sinr_linear": 41.032908101283425,
+          "uav_id": 1,
+          "ue_id": 5,
+          "placement_id": 1
+        },
+        {
+          "u": 1,
+          "k": 7,
+          "placement": 1,
+          "power_index": 5,
+          "num_prbs": 8,
+          "power_w": 0.5011872336272722,
+          "rate_mbps": 16.497045769416914,
+          "sinr_linear": 52.00809879069659,
+          "uav_id": 1,
+          "ue_id": 7,
+          "placement_id": 1
+        },
+        {
+          "u": 1,
+          "k": 11,
+          "placement": 1,
+          "power_index": 4,
+          "num_prbs": 6,
+          "power_w": 0.251188643150958,
+          "rate_mbps": 10.372138609516002,
+          "sinr_linear": 26.89463991352274,
+          "uav_id": 1,
+          "ue_id": 11,
+          "placement_id": 1
+        },
+        {
+          "u": 1,
+          "k": 15,
+          "placement": 1,
+          "power_index": 5,
+          "num_prbs": 7,
+          "power_w": 0.5011872336272722,
+          "rate_mbps": 16.230984639315,
+          "sinr_linear": 85.87486467722363,
+          "uav_id": 1,
+          "ue_id": 15,
+          "placement_id": 1
+        },
+        {
+          "u": 2,
+          "k": 2,
+          "placement": 2,
+          "power_index": 5,
+          "num_prbs": 8,
+          "power_w": 0.5011872336272722,
+          "rate_mbps": 5.031685170499407,
+          "sinr_linear": 2.3568612486893876,
+          "uav_id": 2,
+          "ue_id": 2,
+          "placement_id": 2
+        },
+        {
+          "u": 2,
+          "k": 12,
+          "placement": 2,
+          "power_index": 5,
+          "num_prbs": 11,
+          "power_w": 0.5011872336272722,
+          "rate_mbps": 5.316567571023923,
+          "sinr_linear": 1.5360225405771337,
+          "uav_id": 2,
+          "ue_id": 12,
+          "placement_id": 2
+        },
+        {
+          "u": 2,
+          "k": 23,
+          "placement": 2,
+          "power_index": 4,
+          "num_prbs": 7,
+          "power_w": 0.251188643150958,
+          "rate_mbps": 5.203272544207277,
+          "sinr_linear": 3.183732734384848,
+          "uav_id": 2,
+          "ue_id": 23,
+          "placement_id": 2
+        },
+        {
+          "u": 2,
+          "k": 26,
+          "placement": 2,
+          "power_index": 5,
+          "num_prbs": 7,
+          "power_w": 0.5011872336272722,
+          "rate_mbps": 5.108409173906118,
+          "sinr_linear": 3.0759786582026534,
+          "uav_id": 2,
+          "ue_id": 26,
+          "placement_id": 2
+        },
+        {
+          "u": 3,
+          "k": 6,
+          "placement": 3,
+          "power_index": 5,
+          "num_prbs": 6,
+          "power_w": 0.5011872336272722,
+          "rate_mbps": 5.108092752137572,
+          "sinr_linear": 4.1510186216679745,
+          "uav_id": 3,
+          "ue_id": 6,
+          "placement_id": 3
+        },
+        {
+          "u": 3,
+          "k": 10,
+          "placement": 3,
+          "power_index": 5,
+          "num_prbs": 4,
+          "power_w": 0.5011872336272722,
+          "rate_mbps": 5.201145335687611,
+          "sinr_linear": 11.2262196250903,
+          "uav_id": 3,
+          "ue_id": 10,
+          "placement_id": 3
+        },
+        {
+          "u": 3,
+          "k": 13,
+          "placement": 3,
+          "power_index": 4,
+          "num_prbs": 10,
+          "power_w": 0.251188643150958,
+          "rate_mbps": 10.98988014510499,
+          "sinr_linear": 7.29788972582817,
+          "uav_id": 3,
+          "ue_id": 13,
+          "placement_id": 3
+        },
+        {
+          "u": 3,
+          "k": 25,
+          "placement": 3,
+          "power_index": 5,
+          "num_prbs": 12,
+          "power_w": 0.5011872336272722,
+          "rate_mbps": 10.519092340889186,
+          "sinr_linear": 4.407549921377096,
+          "uav_id": 3,
+          "ue_id": 25,
+          "placement_id": 3
+        }
+      ],
+      "num_ues_served": 18,
+      "total_num_prbs": 128,
+      "total_power_w": 7.021381481480386,
+      "selected_placement_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "power_by_uav_w": [
+        1.7559403967074185,
+        1.7559403967074185,
+        1.7547503440327747,
+        1.7547503440327747
+      ],
+      "interference_iterations": 3,
+      "interference_converged": false
+    },
+    "evaluated_genome": [
+      [
+        941.101251049177,
+        726.6925631086735,
+        300.0,
+        60.0
+      ],
+      [
+        1839.8200200734082,
+        419.85793880150334,
+        300.0,
+        60.0
+      ],
+      [
+        344.528465097306,
+        1228.3449431191639,
+        300.0,
+        60.0
+      ],
+      [
+        771.4787814877918,
+        1576.152753232309,
+        300.0,
+        60.0
+      ]
+    ]
+  },
+  "note": "Every reported incumbent was evaluated by the real fixed-placement HiGHS MILP."
+}
