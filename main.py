@@ -73,7 +73,7 @@ def main(argv=None):
         nominal_confidence=args.interval_confidence,
     )
     print(f"Config: {len(uavs)} UAV / {len(ues)} UE; {config.length_m}x{config.width_m} m; "
-          f"PRB system={config.system_max_prbs}, per UAV={config.uav_max_prb}; "
+          f"PRB shared system pool={config.system_max_prbs}, no fixed per-UAV split; "
           f"power UAV={config.uav_max_power_w:g} W; "
           f"h={min(phys.H_U):g}..{max(phys.H_U):g} m, theta={min(phys.Theta_U):g}..{max(phys.Theta_U):g} deg",
           flush=True)
@@ -98,7 +98,7 @@ def main(argv=None):
     draw_we_service_resource_figure(history, resources, settings=plot_settings)
     draw_surrogate_screening_quality(checks=result["joint_topk_checks"],
         generations=[r["generation"] for r in history], output=quality,
-        rolling_checks=20, nominal_confidence=args.interval_confidence,
+        nominal_confidence=args.interval_confidence,
         audit_label="Audited outside-topK rescue vs provisional cut")
     summary = {
         "assumptions": {
@@ -111,6 +111,7 @@ def main(argv=None):
             "initial_milp_seeds": ga.settings.initial_milp_seeds,
             "update_period": ga.settings.update_period, "clusters": ga.settings.clusters,
             "per_uav_prb_budgets": [u.max_prbs for u in uavs], "prb_bandwidth_hz": phys.Bandwidth_BRP,
+            "prb_allocation": "shared system pool; per-UAV bounds are not reserved quotas",
             "uav_max_power_w": config.uav_max_power_w, "ue_demands_mbps": list(config.required_mbs),
             "seed": args.seed,
             "initialization": "all UAVs and initial individuals share area-centre x/y; h and theta uniform within bounds",
@@ -133,11 +134,12 @@ def main(argv=None):
         "all_steps_figure": str(timeline), "we_service_resource_figure": str(resources),
         "note": "Reported incumbents are evaluated by the fixed-placement MILP; CMA operates inside WE generations.",
         "joint_topk": {
+            "quality_aggregation": "all MILP-checked predictions within each generation; no rolling window",
             "milp_budget_per_generation": args.joint_milp_budget, "rank_samples": args.rank_samples,
             "cma_pre_samples": args.cma_population, "audit_period": args.interval_audit_period,
             "history": result["joint_topk_history"], "checks": result["joint_topk_checks"],
             "cma_updates": result["joint_cma_updates"], "quality_figure": str(quality),
-            "cost": "J = beta*pbar + mu*nbar + eta*max_u(power_load_u, prb_load_u)",
+            "cost": "J = beta*pbar + mu*nbar + eta*max(max_u(power_load_u), system_prb_load)",
             "audit_interpretation": "Exact audit quality is compared with the frozen provisional cut; not a population false-drop probability.",
         },
     }

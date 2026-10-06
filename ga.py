@@ -190,7 +190,7 @@ class CSAEA:
             dtype=float,
         )
         self._uav_prb_budgets = np.asarray(
-            ([prb_budget / num_uavs] * num_uavs if uav_prb_budgets is None else uav_prb_budgets),
+            ([prb_budget] * num_uavs if uav_prb_budgets is None else uav_prb_budgets),
             dtype=float,
         )
         if (self._uav_power_budgets.shape != (num_uavs,)

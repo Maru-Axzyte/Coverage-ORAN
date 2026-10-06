@@ -69,7 +69,7 @@ class UAVMILP:
         self.settings = settings
         self.orthogonal_prb_pool = bool(orthogonal_prb_pool)
         self.system_prb_budget = int(
-            sum(uav.max_prbs for uav in uavs)
+            config.system_max_prbs
             if system_prb_budget is None else system_prb_budget
         )
         self.fixed_placement_indices = (
@@ -510,7 +510,8 @@ class UAVMILP:
                 <= self.uavs[u].max_power_w,
                 name=f"C4_Constraint_{u}",
             )
-            # A local quota is independent of the no-interference assumption.
+            # In the configured shared pool max_prbs=system_prb_budget, so
+            # this bound is redundant, not a reserved 1/U share of the pool.
             model.addConstr(
                 model.qsum(n_prb[u, k] for k in K)
                 <= self.uavs[u].max_prbs,

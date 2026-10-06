@@ -62,7 +62,7 @@ def draw_snapshot(ax: Any, *, title: str, genome: np.ndarray, exact: dict[str, A
         radius = env.coverage_radius(float(h), float(theta))
         ax.add_patch(Circle((x, y), radius, facecolor=palette[index], edgecolor=palette[index], alpha=0.1, linewidth=1.2, zorder=1))
         ax.scatter(x, y, marker='^', s=104, color=palette[index], edgecolor='black', linewidth=0.55, zorder=6)
-        ax.annotate(f'U{index + 1}: {uav_ues[index]} UE\n{uav_prbs[index]}/{settings.prb_budgets[index]} PRB | {uav_power[index]:.2f}/{settings.power_budget_w:.1f} W', (x, y), xytext=(-6 if x > 0.72 * settings.length_m else 6, -6 if y > 0.86 * settings.width_m else 6), textcoords='offset points', fontsize=6.6, weight='bold', zorder=7, ha='right' if x > 0.72 * settings.length_m else 'left', va='top' if y > 0.86 * settings.width_m else 'bottom', bbox={'boxstyle': 'round,pad=.14', 'facecolor': 'white', 'alpha': 0.72, 'edgecolor': 'none'})
+        ax.annotate(f'U{index + 1}: {uav_ues[index]} UE\n{uav_prbs[index]} PRB | {uav_power[index]:.2f}/{settings.power_budget_w:.1f} W', (x, y), xytext=(-6 if x > 0.72 * settings.length_m else 6, -6 if y > 0.86 * settings.width_m else 6), textcoords='offset points', fontsize=6.6, weight='bold', zorder=7, ha='right' if x > 0.72 * settings.length_m else 'left', va='top' if y > 0.86 * settings.width_m else 'bottom', bbox={'boxstyle': 'round,pad=.14', 'facecolor': 'white', 'alpha': 0.72, 'edgecolor': 'none'})
     ax.set_title(title, fontsize=10, weight='bold')
     ax.text(0.02, 0.03, snapshot_metrics({'served_ues': len(served), 'prbs': exact['total_num_prbs'], 'power_w': exact['total_power_w']}, settings=settings), transform=ax.transAxes, fontsize=8, va='bottom', bbox={'boxstyle': 'round,pad=.28', 'facecolor': 'white', 'alpha': 0.86, 'edgecolor': '#b0b0b0'})
     ax.set_xlim(0, settings.length_m)
@@ -98,7 +98,7 @@ def draw_figure(*, ues: Sequence[env.UE], phys: config.PhysConstant, evaluator: 
     chart.text(0.03, -0.26, 'All maps and curve points use env.py LoS/NLoS + orthogonal-PRB SNR and the exact HiGHS MILP.\nSurrogate values never appear as final evidence.', transform=chart.transAxes, fontsize=7.6, va='top')
     figure.suptitle(
         f"{settings.num_uavs} UAV / {settings.num_ues} UE: C-SAEA + War Elimination + joint CMA\n"
-        f"{settings.system_prbs} system PRBs, {phys.Bandwidth_BRP / 1000.0:g} kHz per PRB, "
+        f"{settings.system_prbs} shared system PRBs, {phys.Bandwidth_BRP / 1000.0:g} kHz per PRB, "
         f"{settings.power_budget_w} W per UAV, UE demand {list(settings.ue_demands_mbps)} Mbps",
         weight='bold', y=0.985)
     figure.savefig(output, dpi=230, bbox_inches='tight')
@@ -177,35 +177,47 @@ def show_saved_figures(paths: Sequence[Path]) -> None:
         figure.tight_layout()
     plt.show()
 
-def rolling_quality(checks, generations, rolling_checks=20):
-    if rolling_checks < 1:
-        raise ValueError("rolling_checks must be positive")
+def generation_quality(checks, generations):
+    """Use every audited prediction in each generation, with no cross-generation window.
+
+    Only predictions with a subsequent MILP check can have a measured error.
+    Interval and outside-topK audit fractions have their own denominators.
+    Missing evidence is NaN, never a zero error or a zero rescue rate.
+    """
+    by_generation = {}
+    for check in checks:
+        by_generation.setdefault(check["generation"], []).append(check)
     rows = []
     for generation in generations:
-        recent = [r for r in checks if r["generation"] <= generation][-rolling_checks:]
-        covered = [r["interval_covered"] for r in recent if r.get("interval_covered") is not None]
-        audited = [r["outside_topk_rescue"] for r in recent if r.get("outside_topk_rescue") is not None]
+        current = by_generation.get(generation, [])
+        covered = [r["interval_covered"] for r in current if r.get("interval_covered") is not None]
+        audited = [r["outside_topk_rescue"] for r in current if r.get("outside_topk_rescue") is not None]
         rows.append({"generation": generation,
-            "mae": float(np.mean([abs(r["error_j"]) for r in recent])) if recent else np.nan,
+            "mae": float(np.mean([abs(r["error_j"]) for r in current])) if current else np.nan,
             "coverage": float(np.mean(covered)) if covered else np.nan,
             "rescue": float(np.mean(audited)) if audited else np.nan,
-            "checks": len(recent), "interval_checks": len(covered), "audit_checks": len(audited)})
+            "checks": len(current), "interval_checks": len(covered), "audit_checks": len(audited)})
     return rows
 
 def draw_surrogate_screening_quality(*, checks, generations, output,
-                                     rolling_checks=20, nominal_confidence=.95,
+                                     nominal_confidence=.95,
                                      audit_label="Audited outside-topK rescue vs provisional cut"):
-    rows = rolling_quality(checks, generations, rolling_checks)
+    rows = generation_quality(checks, generations)
     g = [r["generation"] for r in rows]
     fig, axes = plt.subplots(2, 1, figsize=(11, 7), sharex=True)
-    axes[0].plot(g, [r["mae"] for r in rows], color="#4c72b0", linewidth=2,
-                 label=r"Rolling MAE: $|J_{MILP}-\widehat J|$")
+    axes[0].plot(g, [r["mae"] for r in rows], color="#4c72b0", linewidth=1.5,
+                 marker=".", markersize=3,
+                 label=r"Per-generation MAE: mean $|J_{MILP}-\widehat J|$")
     axes[0].set_ylabel("Absolute resource-cost error")
-    axes[0].set_title(f"Surrogate and screening quality (last {rolling_checks} MILP-audited predictions)",
+    axes[0].set_title("Surrogate and screening quality (all MILP-checked predictions per generation)",
                       weight="bold")
-    axes[1].plot(g, [r["coverage"] for r in rows], color="#187a48", linewidth=2,
+    axes[1].plot(g, [r["coverage"] for r in rows], color="#187a48", linewidth=1.5,
+                 marker=".", markersize=3,
                  label="Observed interval coverage (calibrated checks only)")
-    axes[1].plot(g, [r["rescue"] for r in rows], color="#c44e52", linewidth=2, label=audit_label)
+    # Audit generations are sparse. Mark isolated observations; do not connect
+    # across generations without audit evidence or silently carry values forward.
+    axes[1].plot(g, [r["rescue"] for r in rows], color="#c44e52", linestyle="none",
+                 marker="x", markersize=5, label=audit_label)
     axes[1].axhline(nominal_confidence, color="#187a48", linestyle=":",
                     label=f"Nominal confidence ({nominal_confidence:.0%})")
     axes[1].set_ylim(-.04, 1.04)
@@ -214,9 +226,15 @@ def draw_surrogate_screening_quality(*, checks, generations, output,
     for ax in axes:
         ax.grid(alpha=.25)
         ax.legend(loc="best", fontsize=9)
-    fig.text(.02, .015, "Missing evidence is shown as a gap, not zero. Intervals are nominal; "
-             "audit rescues compare against the provisional cut.", fontsize=8)
-    fig.tight_layout(rect=(0, .035, 1, 1))
+    count_ranges = "; ".join(
+        f"{label}: {min((r[key] for r in rows), default=0)}-{max((r[key] for r in rows), default=0)}"
+        for key, label in (("checks", "MILP checks"), ("interval_checks", "interval checks"),
+                           ("audit_checks", "outside-topK audits")))
+    fig.text(.02, .015, "Each point uses only its own generation, not the full unverified pool. "
+             "Missing evidence is a gap.\n"
+             f"Samples per generation ({count_ranges}). Intervals are nominal; audit cut is provisional.",
+             fontsize=8)
+    fig.tight_layout(rect=(0, .06, 1, 1))
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output, dpi=180, bbox_inches="tight")

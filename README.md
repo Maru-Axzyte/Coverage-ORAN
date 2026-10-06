@@ -72,6 +72,13 @@ không sửa biến toàn cục rồi làm lệch nhãn/số lượng UAV của 
 Ở thời điểm tách: 200 cá thể đầu, trần 1000, 300 thế hệ; môi trường 5 UAV/50 UE,
 1000x1000 m, 135 PRB và 2 W/UAV. Đây là mô tả, không phải cấu hình thứ hai.
 
+PRB hiện dùng quỹ chung 135 cho toàn hệ, không chia cứng 27/UAV. Một UAV có
+thể dùng 40 PRB nếu tổng các UAV không vượt 135. `uav_max_prb = 135` là cận
+trên riêng suy ra từ quỹ chung, không phải mỗi UAV được cấp thêm 135 PRB.
+MILP vẫn giữ ràng buộc tổng; surrogate/WE dùng tải PRB `sum(N_u)/135`.
+Giới hạn 2 W/UAV và 10 PRB/link không đổi. Kết quả đã lưu trước thay đổi vẫn
+thuộc cấu hình cũ; chạy lại `main.py` để tạo kết quả theo quỹ chung.
+
 ## Nhánh cũ đã bỏ
 
 Đã bỏ `war_scheduler.py`, các hàm matching/layered survival và các vòng lặp WE

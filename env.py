@@ -323,7 +323,7 @@ def build_random_scenario(
     start_y = np.linspace(width_m / (2 * side), width_m - width_m / (2 * side), side)
     start_positions = list(product(start_x, start_y))
     if prb_budgets is None:
-        # Orthogonality does not remove the configured local PRB quota.
+        # Individual upper bounds share one system pool; no equal split is reserved.
         prb_limits = (config.uav_max_prb,) * num_uavs
     else:
         prb_limits = tuple(int(value) for value in prb_budgets)

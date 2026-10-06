@@ -1,6 +1,7 @@
 """Frozen transition-kernel predictions, residuals and exact-label replacement.
 
-y = [P_u/Pmax_u, N_u/Nmax_u, C, S]. No provisional allocation is solved here.
+y = [P_u/Pmax_u, N_u/Nsys_max, C, S] in the configured shared PRB pool.
+No provisional allocation is solved here.
 """
 from __future__ import annotations
 from statistics import NormalDist
@@ -8,16 +9,20 @@ import math
 import numpy as np
 
 def _resource_statistics(y, power_limits, prb_limits, system_prbs, weights):
-    """y = [P_u/Pmax_u, N_u/Nmax_u, C, S]; supports leading sample axes."""
+    """Reconstruct shared PRB usage from normalized per-UAV allocations.
+
+    prb_limits are coordinate scales, not separate PRB reservations.
+    Only total PRB usage contributes to PRB pressure and violation.
+    """
     y = np.asarray(y, dtype=float)
     u = len(power_limits)
     p, n = np.maximum(y[..., :u], 0.), np.maximum(y[..., u:2*u], 0.)
     pbar = p @ power_limits / np.sum(power_limits)
     nbar = n @ prb_limits / system_prbs
-    z = np.maximum(np.max(p, axis=-1), np.max(n, axis=-1))
+    z = np.maximum(np.max(p, axis=-1), nbar)
     cost = weights[0]*pbar + weights[1]*nbar + weights[2]*z
     violation = (np.maximum(p-1., 0.).sum(axis=-1)
-                 + np.maximum(n-1., 0.).sum(axis=-1) + np.maximum(nbar-1., 0.))
+                 + np.maximum(nbar-1., 0.))
     return pbar, nbar, z, cost, violation
 
 class JointSurrogateMixin:
@@ -42,7 +47,7 @@ class JointSurrogateMixin:
 
     def _exact_bottleneck_pressure(self, result):
         _, prbs, powers = self._exact_uav_loads(result)
-        p, n = float(np.max(powers/self._uav_power_budgets)), float(np.max(prbs/self._uav_prb_budgets))
+        p, n = float(np.max(powers/self._uav_power_budgets)), float(np.sum(prbs)/self.prb_budget)
         return p, n, max(p, n)
 
     def _resource_fitness(self, power_w, prbs, bottleneck_pressure, idle_redeployment_pressure=0.):
@@ -132,7 +137,8 @@ class JointSurrogateMixin:
         item.power_est_w = float(mean[:u] @ self._uav_power_budgets)
         item.prbs_est = float(mean[u:2*u] @ self._uav_prb_budgets)
         item.served_fraction, item.service_score = map(float, mean[-2:])
-        item.power_ratio, item.prb_ratio = float(max(mean[:u])), float(max(mean[u:2*u]))
+        item.power_ratio = float(max(mean[:u]))
+        item.prb_ratio = item.prbs_est/self.prb_budget
         item.bottleneck_pressure, item.fitness = float(z), -float(cost)
         item.violation, item.violation_terms = terms.total, terms.as_dict()
         item.uncertainty = float(np.sqrt(np.trace(covariance)/dimension))
@@ -153,7 +159,7 @@ class JointSurrogateMixin:
         if not payload.get("solver_optimal", False):
             raise RuntimeError("Joint top-K needs a solver_optimal MILP label; no exact label was accepted")
         y = self._joint_exact_y(item)
-        # Local quota and global budget terms use exactly the same primitives
+        # Per-UAV power and shared PRB terms use exactly the same primitives
         # as sampled ranks (the allocator itself enforces these constraints).
         terms = self._violation(item.genome, item.evaluated_genome, 0., 0.)
         _, _, _, _, overload = self._joint_stats(y)
@@ -195,8 +201,14 @@ class JointSurrogateMixin:
         grad = np.zeros(len(y))
         grad[:u] = self._resource_weights[0]*self._uav_power_budgets/self.power_budget_w
         grad[u:2*u] = self._resource_weights[1]*self._uav_prb_budgets/self.prb_budget
-        maxima = np.flatnonzero(np.isclose(y[:2*u], np.max(y[:2*u]), rtol=0., atol=1e-12))
-        grad[maxima] += self._resource_weights[2]/len(maxima)
+        nbar = float(y[u:2*u] @ self._uav_prb_budgets/self.prb_budget)
+        peak = max(float(np.max(y[:u])), nbar)
+        maxima = np.flatnonzero(np.isclose(y[:u], peak, rtol=0., atol=1e-12))
+        shared_active = bool(np.isclose(nbar, peak, rtol=0., atol=1e-12))
+        share = self._resource_weights[2]/(len(maxima)+int(shared_active))
+        grad[maxima] += share
+        if shared_active:
+            grad[u:2*u] += share*self._uav_prb_budgets/self.prb_budget
         return grad
 
     def _joint_freeze(self):

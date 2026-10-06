@@ -43,14 +43,12 @@ F = NF_db
 # Al-Hourani air-to-ground propagation preset used everywhere through env.py.
 # Valid values: Suburban, Urban, Dense Urban, High-rise Urban.
 a2g_environment = "Urban"
-# Orthogonality (no co-channel interference) and per-UAV quotas are separate.
-# Requested scenario: 135 system PRBs, equally capped at 27 for each of 5 UAVs.
+# Shared orthogonal pool: UAVs borrow freely; their combined allocation <= 135.
 global_orthogonal_prb_pool = True
 total_system_prbs = 135
 system_max_prbs = total_system_prbs  # compatibility name; do not set separately
-if total_system_prbs % num_uavs:
-    raise ValueError("total_system_prbs must divide evenly across UAVs")
-uav_max_prb = total_system_prbs // num_uavs
+# Redundant individual upper bound, NOT an independently reserved quota.
+uav_max_prb = total_system_prbs
 uav_max_power_w = 2.0
 power_step_w = 0.1
 allocation_max_prbs = 10       # per UAV-UE link, not per UAV
