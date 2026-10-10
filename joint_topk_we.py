@@ -17,8 +17,6 @@ def topk_probabilities(items, predictions, key, target, samples, rng,
     Conditional draws across candidates are independent; within a candidate
     its full covariance is retained. Exact candidates have no sampling noise.
     """
-    if samples < 1 or not items:
-        raise ValueError("Need a nonempty pool and positive rank sample count")
     count = len(items)
     target = min(max(int(target), 0), count)
     v, c, s, j = [np.empty((samples, count)) for _ in range(4)]
@@ -86,10 +84,6 @@ class JointTopKMixin(JointSurrogateMixin):
     def __init__(self, *args, milp_budget=4, rank_samples=64, cma_pre_samples=8,
                  audit_period=5, min_residual_samples=20, nominal_confidence=.95, **kwargs):
         super().__init__(*args, **kwargs)
-        if (milp_budget < 1 or rank_samples < 1 or cma_pre_samples < 0
-                or audit_period < 0 or min_residual_samples < 2
-                or not 0. < nominal_confidence < 1.):
-            raise ValueError("Invalid joint top-K budget/calibration settings")
         self.joint_milp_budget = int(milp_budget)
         self.rank_samples, self.cma_pre_samples = int(rank_samples), int(cma_pre_samples)
         self.audit_period, self.min_residual_samples = int(audit_period), int(min_residual_samples)
@@ -252,7 +246,7 @@ class JointTopKMixin(JointSurrogateMixin):
         self.joint_exact[tuple(np.round(best_genome, 7).ravel())] = best.clone()
         return {"best_genome": best_genome, "best_milp_result": best.exact_result,
             "best_violation": best.violation, "best_violation_terms": best.violation_terms.copy(),
-            "archive_size": len(self.archive), "transition_count": len(self.transitions),
+            "archive_size": len(self.archive), "joint_transition_window_size": len(self.joint_records),
             "history": self.history, "exact_incumbent_history": snapshots,
             "trajectory": snapshots, "weight_learning_history": self.weight_learning_history,
             "war_method": "joint-topk", "war_history": [], "exact_trace": self.exact_trace,

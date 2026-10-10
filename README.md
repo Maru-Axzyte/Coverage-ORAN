@@ -38,7 +38,10 @@ Nếu chỉ muốn lưu hình mà không mở cửa sổ:
 | `joint_topk_we.py` | Xếp hạng top-K, elite/boundary/audit và vòng lặp WE + CMA chung |
 | `optimizer.py` | Lắp các thành phần thành một optimizer, truyền cấu hình đúng một lần |
 | `plots.py` | Toàn bộ code vẽ bản đồ 2D, timeline, service/resources, chất lượng surrogate |
-| `test_joint_topk_we.py` | Kiểm thử nhỏ bằng allocator giả, không chạy MILP nghiên cứu |
+| `test_settings_cleanup.py` | Kiểm tra cấu hình, nối module và vòng WE nhỏ bằng allocator giả |
+| `test_weight_learning.py` | Kiểm tra bộ học weights và quan hệ với comparator |
+| `test_shared_prb_pool.py` | Kiểm tra quỹ PRB chung bằng các MILP rất nhỏ |
+| `test_plot_quality.py` | Kiểm tra thống kê chất lượng theo generation |
 
 Luồng gọi:
 
@@ -65,12 +68,47 @@ không sửa biến toàn cục rồi làm lệch nhãn/số lượng UAV của 
 - GA/WE: sửa `GASettings` trong `ga.py` (đặc biệt `population_size`,
   `population_capacity`, `generations`).
 - `main.py --help` liệt kê các tuỳ chọn ghi đè có chủ ý cho một lần chạy.
-- Cách lắp cấu hình trong `optimizer.py` giữ nguyên mode đang dùng: block SBX,
-  10 con/cặp và ràng buộc khoảng cách theo config. Không thay các trị số đó khi
-  tách module.
+- `optimizer.py` không còn ghi đè ngầm block SBX, số con/cặp hay bật ràng buộc
+  khoảng cách. Các lựa chọn đó nằm trong `GASettings`; khoảng cách mặc định
+  lấy từ `config.uav_min_separation_m`.
 
-Ở thời điểm tách: 200 cá thể đầu, trần 1000, 300 thế hệ; môi trường 5 UAV/50 UE,
-1000x1000 m, 135 PRB và 2 W/UAV. Đây là mô tả, không phải cấu hình thứ hai.
+Các giá trị được giữ khi dọn mã: 200 cá thể đầu, trần 5000, 400 thế hệ,
+40 mẫu MILP khởi tạo và tối đa 50 con/cặp (bị giới hạn bởi chỗ còn trống).
+Đây chỉ là mô tả; giá trị thực lấy từ cấu hình hiện tại, không lấy từ README.
+
+| Nhóm còn dùng trong `GASettings` | Tham số |
+|---|---|
+| Kích thước và thời gian | `population_size`, `population_capacity`, `generations` |
+| MILP khởi tạo và học weights | `initial_milp_seeds`, `update_period` |
+| Sinh con | `sbx_eta`, `sbx_uav_blocks`, `children_per_pair`, `mutation_probability`, `mutation_sigma` |
+| Giữ tinh hoa | `elite_fraction` |
+| Trọng số khởi tạo | `beta_power`, `mu_prb`, `eta_bottleneck` |
+| Dự đoán transition | `transition_state_bandwidth`, `transition_action_bandwidth`, `transition_neighbors` |
+| Khoảng cách và tái lập | `include_separation_constraint`, `min_uav_separation_m`, `random_seed` |
+
+`population_size` là số cấu hình ban đầu, không phải số UAV. Mỗi cấu hình
+chứa đủ các UAV. `population_capacity` là trần cùng lúc của cha mẹ và con;
+lịch số cấu hình sống sót nằm trong `ContextualCSAEA._population_target`.
+Lịch này, ngân sách MILP, top-K và CMA không thay đổi trong đợt dọn mã.
+
+Đã bỏ các nút chỉnh không tác động đến luồng joint đang chạy:
+`clusters`, `light_violation_epsilon`, `light_violation_fraction`,
+`bottleneck_target`, `idle_uav_redeployment_weight`, `unserved_infill_variants`,
+`surrogate_service_tie_epsilon`, `omega_uncertainty`, `omega_overlap`,
+`jaccard_weight`, `radio_similarity_weight`, `topology_similarity_weight`,
+`transition_risk_kappa`, `use_war_elimination`.
+
+Chỉ còn bộ dự đoán trong `surrogate.py`, dùng `joint_records`; đã bỏ bộ
+`TransitionRecord`/`self.transitions` trùng ở `ga.py` và descriptor chỉ phục vụ
+bộ cũ. Metadata `joint_transition_window_size` đếm cửa sổ transition đang dùng,
+không phải tổng số lần MILP. Các khóa JSON lịch sử rỗng như `war_history` được
+giữ để tương thích công cụ đọc kết quả, không có vòng chiến tranh cũ chạy ngầm.
+
+Không tự ý kích hoạt lý thuyết từng được đề xuất nhưng chưa áp dụng: bottleneck
+hiện là `max(peak_power_load, system_prb_load)`, không trừ `bottleneck_target`;
+idle-UAV là chỉ số chẩn đoán, không có penalty; comparator hiện so trực tiếp
+`S`, không dùng `surrogate_service_tie_epsilon`. Deb, epsilon theo thế hệ,
+`f_resource` và bộ học contextual weights được giữ nguyên.
 
 PRB hiện dùng quỹ chung 135 cho toàn hệ, không chia cứng 27/UAV. Một UAV có
 thể dùng 40 PRB nếu tổng các UAV không vượt 135. `uav_max_prb = 135` là cận
@@ -89,17 +127,21 @@ và so sánh baseline cũ không còn thuộc chương trình này.
 
 Bản sao trước khi tách ở `tmp/module_split_before_20261004_155136.zip`, gồm mã
 Python và cấu hình VS Code trước thay đổi. Các kết quả mô phỏng cũ không bị xóa.
-`NOTE_WE.md` là ghi chép lịch sử; mô tả lý thuyết hiện tại nằm trong
-`JOINT_TOPK_RESTORATION.md`.
 
 ## Kiểm tra
 
+Theo yêu cầu rút gọn, mã dự án không còn các lệnh `raise ValueError` tự viết
+để kiểm tra đầu vào. Các hàm nội bộ giả định cấu hình hợp lệ: số lượng/ngân sách
+dương, ma trận đúng kích thước, bandwidth dương và lựa chọn mode hợp lệ.
+Điều này không làm mất các ràng buộc tối ưu của MILP hay thay công thức vật lý.
+`main.py` vẫn kiểm tra các tùy chọn dòng lệnh; lỗi từ Python/thư viện vẫn có thể
+xuất hiện. Kết quả học weights không hợp lệ sẽ không được cập nhật, và CMA
+không cập nhật từ mẫu chưa được MILP xác nhận. Không có cơ chế bỏ qua mọi lỗi.
+
 ```powershell
-.\.venv\Scripts\python.exe -B -m unittest test_joint_topk_we -v
+.\.venv\Scripts\python.exe -B -m unittest test_settings_cleanup test_weight_learning test_shared_prb_pool test_plot_quality -v
 ```
 
-Kiểm thử nối toàn luồng dùng allocator giả, lưu đủ PNG/JSON trong thư mục tạm.
-Một ca 6 thế hệ cùng seed đã được so sánh trước/sau tách file: lịch sử WE,
-top-K, audit và CMA không đổi. Điều này kiểm tra việc tách module, không chứng
-minh hiệu quả tối ưu trên thí nghiệm thật. Không chạy lại mô phỏng nghiên cứu
-trong lần tổ chức mã nguồn này.
+Kiểm thử nối luồng dùng allocator giả với hai UAV và sáu thế hệ; các kiểm thử
+PRB chỉ giải MILP tổng hợp rất nhỏ. Đây là kiểm tra hồi quy, không phải chứng
+minh hiệu quả tối ưu trên thí nghiệm thật. Chạy `main.py` để tự làm thí nghiệm.

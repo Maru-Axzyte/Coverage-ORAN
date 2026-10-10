@@ -63,8 +63,6 @@ class JointSurrogateMixin:
             return np.array([], dtype=int), np.array([]), 1., 0.
         d, m = 4*self.num_uavs, 2*self.num_uavs+2
         ls, la = self.settings.transition_state_bandwidth, self.settings.transition_action_bandwidth
-        if ls <= 0 or la <= 0:
-            raise ValueError("Transition bandwidths must be positive")
         diff = np.array([row["feature"] for row in rows])-feature
         # Normalize blocks as well as physical coordinates: dimensionality
         # alone must not give geometry an arbitrarily larger weight than m.

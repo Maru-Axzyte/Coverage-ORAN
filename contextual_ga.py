@@ -11,12 +11,9 @@ from contextual_weight_audit import AuditedContextualWeights
 class ContextualCSAEA(CSAEA):
     def __init__(self, *args, weight_method="contextual", **kwargs):
         super().__init__(*args, **kwargs)
-        if weight_method not in ("fixed", "contextual"):
-            raise ValueError("Unknown resource-weight method")
         self.weight_method = weight_method
         self.weight_learner = (AuditedContextualWeights(self._resource_weights)
                                if weight_method == "contextual" else None)
-        self.war_history = []
         self._brood_families = []
         self.exact_trace = []
         # A neutral prior, not an allegedly learned matrix. CVXPY updates it

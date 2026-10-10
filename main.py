@@ -80,7 +80,7 @@ def main(argv=None):
     print(f"WE settings: initial population={ga.settings.population_size}, "
           f"capacity={ga.settings.population_capacity}, generations={ga.settings.generations}, "
           f"initial MILP seeds={ga.settings.initial_milp_seeds}, update period={ga.settings.update_period}, "
-          f"clusters={ga.settings.clusters}, children/pair={ga.settings.children_per_pair}", flush=True)
+          f"children/pair={ga.settings.children_per_pair}", flush=True)
     print("[1/2] Running joint WE + CMA with MILP validation...", flush=True)
     result = ga.run()
     final = ga.joint_exact[tuple(np.round(result["best_genome"], 7).ravel())]
@@ -109,7 +109,7 @@ def main(argv=None):
             "generations": args.generations, "active_population": ga.settings.population_size,
             "population_capacity": ga.settings.population_capacity,
             "initial_milp_seeds": ga.settings.initial_milp_seeds,
-            "update_period": ga.settings.update_period, "clusters": ga.settings.clusters,
+            "update_period": ga.settings.update_period,
             "per_uav_prb_budgets": [u.max_prbs for u in uavs], "prb_bandwidth_hz": phys.Bandwidth_BRP,
             "prb_allocation": "shared system pool; per-UAV bounds are not reserved quotas",
             "uav_max_power_w": config.uav_max_power_w, "ue_demands_mbps": list(config.required_mbs),

@@ -104,13 +104,6 @@ class PhysConstant:
                      (self.P_min_dbm, self.P_max_dbm, self.power_level_step_db))
         maximum = (self.P_max_w if self.P_max_dbm is None
                    else 10 ** ((self.P_max_dbm - 30) / 10))
-        if not math.isfinite(maximum) or maximum <= 0:
-            raise ValueError("P_max_w must be positive and finite")
-        if self.power_step_w <= 0 or not math.isfinite(self.power_step_w):
-            raise ValueError("power_step_w must be positive and finite")
-        if (not isinstance(self.allocation_max_prbs, int) or self.allocation_max_prbs < 1
-                or not math.isfinite(self.allocation_max_power_w) or self.allocation_max_power_w <= 0):
-            raise ValueError("Per-link PRB and power limits must be positive")
         object.__setattr__(self, "P_max_w", maximum)
         object.__setattr__(self, "P_max_dbm", 10 * math.log10(maximum) + 30)
         if legacy:
@@ -122,8 +115,6 @@ class PhysConstant:
         if self.power_level_step_db is not None:
             return tuple(10 ** ((p - 30) / 10) for p in self.power_levels_dbm)
         count = round(self.P_max_w / self.power_step_w)
-        if not math.isclose(count * self.power_step_w, self.P_max_w, rel_tol=0., abs_tol=1e-9):
-            raise ValueError("P_max_w must be an integer multiple of power_step_w")
         return tuple(round(i * self.power_step_w, 12) for i in range(1, count + 1))
 
     @property
@@ -134,8 +125,6 @@ class PhysConstant:
     def power_levels_dbm(self) -> Tuple[float, ...]:
         if self.power_level_step_db is None:
             return tuple(10 * math.log10(p) + 30 for p in self.power_levels_w)
-        if self.power_level_step_db <= 0:
-            raise ValueError("power_level_step_db must be positive")
         levels: list[float] = []
         value = float(self.P_min_dbm)
         while value < self.P_max_dbm - 1e-12:

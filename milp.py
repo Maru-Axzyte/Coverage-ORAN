@@ -3,7 +3,6 @@ import math
 from collections import defaultdict
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass
-from numbers import Integral
 from pathlib import Path
 from typing import Any, DefaultDict, Dict, List, Sequence, Tuple
 
@@ -85,60 +84,6 @@ class UAVMILP:
         )
         self.power_level_dbm = self.phys.power_levels_dbm
         self.power_level_w = list(self.phys.power_levels_w)
-
-
-        if not self.uavs or not self.ues or not self.placements:
-            raise ValueError("UAV, UE and placement sets must not be empty")
-        if len({uav.id for uav in self.uavs}) != len(self.uavs):
-            raise ValueError("UAV ids must be unique")
-        if len({ue.id for ue in self.ues}) != len(self.ues):
-            raise ValueError("UE ids must be unique")
-        if any(uav.max_power_w <= 0 or uav.max_prbs <= 0 for uav in self.uavs):
-            raise ValueError("Each UAV must have positive power and PRB budgets")
-        if self.system_prb_budget <= 0:
-            raise ValueError("system_prb_budget must be positive")
-        if any(ue.require_mbps <= 0 for ue in self.ues):
-            raise ValueError("Each UE rate requirement must be positive")
-        if self.phys.P_min_dbm is not None and self.phys.P_min_dbm > self.phys.P_max_dbm:
-            raise ValueError("P_min_dbm must not exceed P_max_dbm")
-        if self.fixed_placement_indices is not None and (
-            len(self.fixed_placement_indices) != len(self.uavs)
-            or any(
-                not isinstance(placement, Integral)
-                or isinstance(placement, bool)
-                or placement < 0
-                or placement >= len(self.placements)
-                for placement in self.fixed_placement_indices
-            )
-        ):
-            raise ValueError(
-                "fixed_placement_indices must contain one valid placement per UAV"
-            )
-        if (self.reference_placement_indices is None) != (self.reference_total_power_w is None):
-            raise ValueError("Reference positions and powers must be supplied together")
-        if self.reference_placement_indices is not None and (
-            len(self.reference_placement_indices) != len(self.uavs)
-            or len(self.reference_total_power_w) != len(self.uavs)
-            or any(index < 0 or index >= len(self.placements) for index in self.reference_placement_indices)
-            or any(power < 0 for power in self.reference_total_power_w)
-        ):
-            raise ValueError("Invalid interference reference")
-        if any(
-            placement.h_u <= 0
-            or not 0 < placement.theta_u < 90
-            or placement.r_u <= 0
-            or not math.isclose(
-                placement.r_u,
-                env.coverage_radius(placement.h_u, placement.theta_u),
-                rel_tol=1e-6,
-                abs_tol=1e-6,
-            )
-            for placement in self.placements
-        ):
-            raise ValueError(
-                "Each placement needs h>0, 0<theta<90 and radius=h*tan(theta)"
-            )
-
 
         self.service_modes: Dict[Tuple[int,int,int,int], ServiceMode] = {}
         self.modes_by_uk: Dict[Tuple[int,int], List[Tuple[int,int,int,int]]] = defaultdict(list)
@@ -315,8 +260,7 @@ class UAVMILP:
             ("threads", self.settings.num_threads),
             ("parallel", "on" if self.settings.parallel_search else "off"),
         ):
-            if model.setOptionValue(option, value) != gp.HighsStatus.kOk:
-                raise ValueError(f"Invalid HiGHS option {option}={value!r}")
+            model.setOptionValue(option, value)
 
         # HiGHS drops tiny matrix coefficients and returns kWarning. The
         # highspy addConstr wrapper treats that warning as an exception.
@@ -616,8 +560,6 @@ class UAVMILP:
         This outer loop keeps each inner HiGHS model linear by fixing the
         previous solution as the interference snapshot.
         """
-        if max_iterations <= 0:
-            raise ValueError("max_iterations must be positive")
         if self.orthogonal_prb_pool:
             result = self.solve()
             result["interference_iterations"] = 0

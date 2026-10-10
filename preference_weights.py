@@ -32,14 +32,6 @@ class PreferencePair:
     margin: float = 0.02
     confidence: float = 1.0
 
-    def __post_init__(self) -> None:
-        if self.better.ndim != 1 or self.worse.ndim != 1:
-            raise ValueError("Resource vectors must be one-dimensional")
-        if self.better.shape != self.worse.shape:
-            raise ValueError("Each pair must have equally sized resource vectors")
-        if self.margin < 0 or self.confidence <= 0:
-            raise ValueError("margin must be nonnegative and confidence positive")
-
 
 @dataclass(frozen=True)
 class PreferenceFit:
@@ -78,18 +70,9 @@ def fit_contextual_pairwise_weights(
 ) -> ContextualPreferenceFit:
     """Learn ``w(c) = vartheta @ c`` by a convex pairwise hinge problem.
     """
-    if not pairs:
-        raise ValueError("At least one exact contextual preference pair is required")
     prior = np.asarray(prior, dtype=float)
     previous = np.asarray(previous, dtype=float)
-    if (prior.ndim != 2 or prior.shape[0] != 3 or not 2 <= prior.shape[1] <= 9
-            or previous.shape != prior.shape):
-        raise ValueError("prior and previous must be matching 3-by-d matrices, 2 <= d <= 9")
     context_size = prior.shape[1]
-    if not (np.all(np.isfinite(prior)) and np.all(np.isfinite(previous))):
-        raise ValueError("prior and previous must be finite")
-    if prior_strength < 0 or temporal_strength < 0:
-        raise ValueError("regularisation strengths must be nonnegative")
 
     design: list[np.ndarray] = []
     margins: list[float] = []
@@ -97,24 +80,12 @@ def fit_contextual_pairwise_weights(
         better = np.asarray(pair.better, dtype=float)
         worse = np.asarray(pair.worse, dtype=float)
         context = np.asarray(pair.context, dtype=float)
-        if better.shape != (3,) or worse.shape != (3,) or context.shape != (context_size,):
-            raise ValueError("Each pair requires two 3-vectors and one matching context")
-        if not (np.all(np.isfinite(better)) and np.all(np.isfinite(worse))
-                and np.all(np.isfinite(context))):
-            raise ValueError("Pair data must be finite")
-        if abs(context[0] - 1.0) > 1e-9 or np.any(context[1:] < 0) or np.any(context[1:] > 1):
-            raise ValueError("Context must be [1, c1, ...] with ci in [0, 1]")
-        if not np.isfinite(pair.margin) or pair.margin < 0:
-            raise ValueError("Pair margin must be nonnegative")
         design.append(np.outer(worse - better, context).ravel())
         margins.append(float(pair.margin))
 
     matrix = np.vstack(design)
     margin_vector = np.asarray(margins)
     importance = np.ones(len(pairs)) if pair_weights is None else np.asarray(pair_weights, dtype=float)
-    if (importance.shape != (len(pairs),) or not np.all(np.isfinite(importance))
-            or np.any(importance < 0) or importance.sum() <= 0):
-        raise ValueError("Pair weights must be finite, nonnegative and have positive total")
     importance = importance / importance.sum()
     vartheta = cp.Variable(prior.shape, name="contextual_vartheta")
     slack = cp.Variable(len(pairs), nonneg=True, name="contextual_pair_slack")
@@ -186,26 +157,12 @@ def fit_pairwise_weights(
     scale.  A nonzero quadratic prior/temporal term makes the objective
     strongly convex in the unconstrained directions.
     """
-    if not pairs:
-        raise ValueError("At least one exact preference pair is required")
-    if loss_kind not in ("hinge", "squared_hinge"):
-        raise ValueError("loss_kind must be 'hinge' or 'squared_hinge'")
-    if prior_strength < 0 or temporal_strength < 0 or min_weight < 0:
-        raise ValueError("regularisation strengths and min_weight must be nonnegative")
 
     prior = np.asarray(prior, dtype=float).reshape(-1)
-    if prior.size == 0 or not np.all(np.isfinite(prior)):
-        raise ValueError("prior must be a finite nonempty vector")
-    if min_weight * prior.size > 1 + 1e-12:
-        raise ValueError("min_weight is incompatible with the simplex")
     prior = np.maximum(prior, 0.0)
-    if prior.sum() <= 0:
-        raise ValueError("prior must have positive mass")
     prior /= prior.sum()
 
     previous_value = prior if previous is None else np.asarray(previous, dtype=float).reshape(-1)
-    if previous_value.shape != prior.shape:
-        raise ValueError("previous and prior must have the same shape")
     previous_value = np.maximum(previous_value, 0.0)
     if previous_value.sum() <= 0:
         previous_value = prior.copy()
@@ -217,8 +174,6 @@ def fit_pairwise_weights(
     margins = []
     confidences = []
     for pair in pairs:
-        if pair.better.size != dimension:
-            raise ValueError("Pair dimension does not match prior")
         # cost(better) + margin <= cost(worse)
         deltas.append(np.asarray(pair.worse - pair.better, dtype=float))
         margins.append(float(pair.margin))

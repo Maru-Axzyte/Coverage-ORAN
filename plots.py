@@ -109,8 +109,6 @@ def draw_figure(*, ues: Sequence[env.UE], phys: config.PhysConstant, evaluator: 
 def draw_all_steps_figure(*, ues: Sequence[env.UE], phys: config.PhysConstant, evaluator: Any, we_history: list[dict[str, Any]], output: Path, snapshot_period: int, settings=None) -> None:
     """A 2-D panel for each requested joint WE/CMA generation milestone."""
     settings = settings or PlotSettings.from_config()
-    if snapshot_period <= 0:
-        raise ValueError('snapshot_period must be positive')
     all_steps = [(f"WE generation {int(item['generation'])}", item)
                  for item in we_history if int(item['generation']) % snapshot_period == 0]
     columns = 4
@@ -138,8 +136,6 @@ def draw_we_service_resource_figure(we_history: Sequence[dict[str, Any]], output
     as the optimizer, rather than surrogate estimates.
     """
     settings = settings or PlotSettings.from_config()
-    if not we_history:
-        raise ValueError('we_history must contain at least one exact incumbent')
     generations = np.asarray([row['generation'] for row in we_history], dtype=int)
     served = np.asarray([row['served_ues'] for row in we_history], dtype=float)
     mean_power_load = np.asarray([row['power_w'] / (settings.num_uavs * settings.power_budget_w) for row in we_history], dtype=float)

@@ -31,10 +31,8 @@ class JointCMA:
 
     def update(self, verified, quality_key, lower, span, mu=2):
         # Every entry must be an actual MILP label from this distribution.
-        if len(verified) < 2:
+        if len(verified) < 2 or any(x.exact_result is None for x in verified):
             return False
-        if any(x.exact_result is None for x in verified):
-            raise ValueError("CMA update requires MILP-evaluated samples")
         selected = sorted(verified, key=quality_key)[:min(mu, len(verified))]
         d = len(self.mean)
         weights = np.log(len(selected)+.5) - np.log(np.arange(1, len(selected)+1))

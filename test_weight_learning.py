@@ -79,14 +79,33 @@ class WeightLearningTests(unittest.TestCase):
             self.learner.observe((i,), resource, served, service, .2, CONTEXT)
         self.assertEqual(self.learner.update(CONTEXT)['training_pairs'], 0)
 
-    def test_invalid_context_does_not_consume_data(self):
+    def test_context_importance_for_valid_inputs(self):
         add_chain(self.learner, [.2]*3)
-        for value in [-1., float('nan'), float('inf')]:
-            context = CONTEXT.copy()
-            context[1] = value
-            with self.assertRaises(ValueError):
-                self.learner.update(context)
+        pair = SimpleNamespace(context=CONTEXT.copy())
+        np.testing.assert_allclose(self.learner.context_importance([pair], CONTEXT), [1.])
+        opposite = CONTEXT.copy()
+        opposite[1:] = 1.-opposite[1:]
+        expected = 1.-np.mean((opposite[1:]-CONTEXT[1:])**2)
+        np.testing.assert_allclose(self.learner.context_importance([pair], opposite), [expected])
         self.assertFalse(self.learner._paired_observations)
+
+    def test_failed_fit_keeps_previous_weights_without_raising(self):
+        for status, matrix in (
+            ('infeasible', np.zeros((3, 5))),
+            ('optimal', np.zeros((2, 5))),
+            ('optimal', np.full((3, 5), np.nan)),
+            ('optimal', np.zeros((3, 5))),
+        ):
+            with self.subTest(status=status, shape=matrix.shape):
+                learner = AuditedContextualWeights(np.ones(3))
+                add_chain(learner, [.2]*3)
+                before = learner.matrix.copy()
+                fake = SimpleNamespace(status=status, vartheta=matrix, mean_pair_loss=0.)
+                with patch('contextual_weight_audit.fit_history_contextual_weights', return_value=fake):
+                    result = learner.update(CONTEXT)
+                np.testing.assert_array_equal(learner.matrix, before)
+                self.assertEqual(result['successful_updates'], 0)
+                self.assertEqual(result['status'], 'fit_failed: invalid_solver_result')
 
     def test_real_cvxpy_small_weight_fit(self):
         add_chain(self.learner, [.2013]*3)

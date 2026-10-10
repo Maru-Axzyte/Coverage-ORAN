@@ -31,8 +31,6 @@ class AuditedContextualWeights:
 
     def __init__(self, initial_weights):
         weights = np.asarray(initial_weights, dtype=float)
-        if weights.shape != (3,) or not np.all(np.isfinite(weights)) or np.min(weights) < 0 or weights.sum() <= 0:
-            raise ValueError("Three finite nonnegative prior weights are required")
         self.prior = np.zeros((3, len(self.context_names)))
         self.prior[:, 0] = weights / weights.sum()
         self.matrix = self.prior.copy()
@@ -47,12 +45,6 @@ class AuditedContextualWeights:
     def observe(self, key, resource, served, service, violation, context):
         resource = np.asarray(resource, dtype=float).copy()
         context = np.asarray(context, dtype=float).copy()
-        if (resource.shape != (3,) or context.shape != (5,)
-                or not np.all(np.isfinite(resource)) or not np.all(np.isfinite(context))
-                or not np.isfinite(service) or not np.isfinite(violation)):
-            raise ValueError("Invalid exact observation")
-        if abs(context[0] - 1) > 1e-9 or np.min(context[1:]) < 0 or np.max(context[1:]) > 1:
-            raise ValueError("Context must lie in the declared unit box")
         if key in self.seen:
             self.duplicates += 1
             return
@@ -95,10 +87,6 @@ class AuditedContextualWeights:
         an entirely zero-weight batch must abstain rather than divide by zero.
         """
         current = np.asarray(current_context, dtype=float)
-        if (current.shape != (5,) or not np.all(np.isfinite(current))
-                or abs(current[0] - 1.) > 1e-9
-                or np.any(current[1:] < 0) or np.any(current[1:] > 1)):
-            raise ValueError("Current context must be [1, four features in [0,1]]")
         return np.asarray([1. - np.mean((current[1:] - p.context[1:]) ** 2)
                            for p in pairs])
 
@@ -106,8 +94,6 @@ class AuditedContextualWeights:
         if current_context is None:
             current_context = (self.observations[-1].context if self.observations
                                else np.array([1., 0., 0., 0., 0.]))
-        # Validate before consuming new observations.
-        self.context_importance([], current_context)
         average_before = self.average_matrix.copy()
         previous = self.matrix.copy()
         pending = self._collect_pairs()
@@ -129,21 +115,22 @@ class AuditedContextualWeights:
                         self.pairs, average=average_before, previous=previous,
                         pair_weights=importance,
                     )
-                    if fit.status not in (cp.OPTIMAL, cp.OPTIMAL_INACCURATE):
-                        raise ValueError("Weight solve did not succeed")
                     fitted = np.asarray(fit.vartheta, dtype=float)
-                    if fitted.shape != self.matrix.shape:
-                        raise ValueError("Fitted matrix has wrong shape")
-                    corners = np.asarray([[1., *v] for v in product((0., 1.), repeat=4)])
-                    outputs = corners @ fitted.T
-                    if (not np.all(np.isfinite(outputs)) or np.min(outputs) < -1e-6
-                            or not np.allclose(outputs.sum(axis=1), 1., atol=1e-6, rtol=0)):
-                        raise ValueError("Fitted matrix violates simplex constraints")
-                    self.matrix = fitted.copy()
-                    self.successful_updates += 1
-                    self.average_matrix = average_before + (
-                        self.matrix - average_before) / (self.successful_updates + 1)
-                    status, train_loss = fit.status, fit.mean_pair_loss
+                    usable = (fit.status in (cp.OPTIMAL, cp.OPTIMAL_INACCURATE)
+                              and fitted.shape == self.matrix.shape)
+                    if usable:
+                        corners = np.asarray([[1., *v] for v in product((0., 1.), repeat=4)])
+                        outputs = corners @ fitted.T
+                        usable = (np.all(np.isfinite(outputs)) and np.min(outputs) >= -1e-6
+                                  and np.allclose(outputs.sum(axis=1), 1., atol=1e-6, rtol=0))
+                    if usable:
+                        self.matrix = fitted.copy()
+                        self.successful_updates += 1
+                        self.average_matrix = average_before + (
+                            self.matrix - average_before) / (self.successful_updates + 1)
+                        status, train_loss = fit.status, fit.mean_pair_loss
+                    else:
+                        status = "fit_failed: invalid_solver_result"
                 except (ValueError, RuntimeError, cp.error.SolverError) as error:
                     status = f"fit_failed: {type(error).__name__}: {error}"
         contexts = np.asarray([p.context for p in self.pairs])

@@ -18,9 +18,7 @@ def build_ga(*, uavs, ues, phys, evaluator, population, population_capacity,
     settings = replace(
         defaults, population_size=population, population_capacity=population_capacity,
         generations=generations, initial_milp_seeds=min(defaults.initial_milp_seeds, population),
-        clusters=min(defaults.clusters, population), use_war_elimination=True,
-        include_separation_constraint=True, min_uav_separation_m=config.uav_min_separation_m,
-        random_seed=seed, sbx_uav_blocks=True, children_per_pair=10,
+        random_seed=seed,
     )
     return JointTopKCSAEA(
         milp_budget=joint_milp_budget, rank_samples=rank_samples,

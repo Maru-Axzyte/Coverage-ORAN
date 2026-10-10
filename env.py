@@ -14,8 +14,6 @@ def dbm_to_wat(dbm: float) -> float:
 
 
 def wat_to_dbm(power_w: float) -> float:
-    if power_w <= 0:
-        raise ValueError("power_w must be positive")
     return 10.0 * math.log10(power_w) + 30.0
 
 
@@ -24,8 +22,6 @@ def dis_2d(x1: float, y1: float, x2: float, y2: float) -> float:
 
 
 def coverage_radius(height_m: float, theta_deg: float) -> float:
-    if height_m <= 0 or not 0 < theta_deg < 90:
-        raise ValueError("Require h > 0 and 0 < theta < 90 degrees")
     return height_m * math.tan(math.radians(theta_deg))
 
 
@@ -77,8 +73,6 @@ class AirToGroundLink:
 
 def los_probability(elevation_deg: float, channel: AirToGroundParameters | None = None) -> float:
     """Al-Hourani P(LoS) as a function of elevation angle in degrees."""
-    if not 0 <= elevation_deg <= 90:
-        raise ValueError("Elevation angle must be in [0, 90] degrees")
     channel = channel or default_air_to_ground_parameters()
     return 1.0 / (1.0 + channel.los_a * math.exp(
         -channel.los_b * (elevation_deg - channel.los_a)
@@ -105,8 +99,6 @@ class UAV:
             self.max_power_w = dbm_to_wat(self.p_tx_dBm)
         if self.max_prbs is None:
             self.max_prbs = self.num_RB
-        if self.max_power_w <= 0 or self.max_prbs <= 0:
-            raise ValueError("UAV resource budgets must be positive")
         self.radius = coverage_radius(self.z, self.theta_max)
 
     def get_position(self) -> np.ndarray:
@@ -120,10 +112,6 @@ class UE:
     y_m: float
     require_mbps: float = 2.0
     min_sinr_db: float = -3.0
-
-    def __post_init__(self) -> None:
-        if self.require_mbps <= 0:
-            raise ValueError("UE require_mbps must be positive")
 
     @property
     def x(self) -> float:
@@ -209,8 +197,6 @@ def rsrp_dbm(
     phys: config.PhysConstant, channel: AirToGroundParameters | None = None,
 ) -> float:
     """Per-PRB RSRP using the same A2G path loss and antenna gain."""
-    if num_prbs <= 0:
-        raise ValueError("num_prbs must be positive")
     link = air_to_ground_link(placement, ue, phys, channel)
     return transmit_power_dbm - 10.0 * math.log10(num_prbs) + 10.0 * math.log10(
         link.antenna_gain_linear
@@ -227,16 +213,12 @@ def sinr_linear(
     phys: config.PhysConstant,
 ) -> float:
     """SINR on one PRB; ``power_per_prb_w`` is not total link power."""
-    if power_per_prb_w < 0 or desired_gain < 0 or interference_w < 0:
-        raise ValueError("Power, channel gain, and interference must be non-negative")
     return power_per_prb_w * desired_gain / max(
         noise_per_prb_w(phys) + interference_w, 1e-30
     )
 
 
 def spectral_efficiency_bps_hz(sinr: float) -> float:
-    if sinr < 0:
-        raise ValueError("SINR must be non-negative")
     return math.log2(1.0 + sinr)
 
 
@@ -245,8 +227,6 @@ def data_rate_mbps(
     interference_w: float = 0.0,
 ) -> tuple[float, float]:
     """Rate when ``power_w`` is total link power spread over its PRBs."""
-    if power_w < 0 or num_prbs < 0 or channel_gain < 0:
-        raise ValueError("power, PRBs, and channel gain must be non-negative")
     if num_prbs == 0:
         return 0.0, 0.0
     power_per_prb_w = power_w / num_prbs
@@ -289,11 +269,7 @@ def build_hotspot_ues(
     num_hotspots: int = 5, hotspot_std_m: float = 100.0, seed: int = config.seed,
 ) -> tuple[UE, ...]:
     """Create reproducible clustered UE demand while keeping all UEs in bounds."""
-    if num_ues <= 0 or num_hotspots <= 0 or hotspot_std_m <= 0:
-        raise ValueError("UE count, hotspot count, and hotspot standard deviation must be positive")
     demands = np.asarray(tuple(demands_mbps), dtype=float)
-    if demands.size == 0 or np.any(demands <= 0):
-        raise ValueError("demands_mbps must contain positive values")
     rng = np.random.default_rng(seed)
     hotspots = rng.uniform([0.0, 0.0], [length_m, width_m], size=(num_hotspots, 2))
     hotspot_ids = rng.integers(0, num_hotspots, size=num_ues)
@@ -315,8 +291,6 @@ def build_random_scenario(
     power_budgets_w: Iterable[float] | None = None,
 ) -> Scenario:
     """Create a reproducible default scenario ready for both MILP and GA."""
-    if grid_size < 2:
-        raise ValueError("grid_size must be at least 2")
     rng = np.random.default_rng(seed)
     side = math.ceil(math.sqrt(num_uavs))
     start_x = np.linspace(length_m / (2 * side), length_m - length_m / (2 * side), side)
@@ -331,10 +305,6 @@ def build_random_scenario(
         tuple(float(value) for value in power_budgets_w)
         if power_budgets_w is not None else (config.uav_max_power_w,) * num_uavs
     )
-    if len(prb_limits) != num_uavs or len(power_limits) != num_uavs:
-        raise ValueError("Give exactly one PRB and power budget for every UAV")
-    if any(value <= 0 for value in prb_limits) or any(value <= 0 for value in power_limits):
-        raise ValueError("PRB and power budgets must be positive")
     uavs = tuple(
         UAV(
             i, float(start_positions[i][0]), float(start_positions[i][1]),
@@ -354,8 +324,6 @@ def build_random_scenario(
         ues = build_hotspot_ues(
             num_ues, length_m, width_m, demands, num_hotspots, hotspot_std_m, seed
         )
-    else:
-        raise ValueError("ue_distribution must be 'uniform' or 'hotspot'")
     placements = tuple(make_placements(
         np.linspace(0, length_m, grid_size + 1), np.linspace(0, width_m, grid_size + 1),
         phys.H_U, phys.Theta_U,
@@ -404,13 +372,9 @@ class RadioEnvironment:
         self.serving_matrix = np.zeros(shape, dtype=bool)
         self.association = np.full(num_ues, -1, dtype=int)
 
-    def _check_shape(self, uavs: Sequence[UAV], ues: Sequence[UE]) -> None:
-        if len(uavs) != self.num_uavs or len(ues) != self.num_ues:
-            raise ValueError("RadioEnvironment dimensions do not match UEs/UAVs")
 
     def calc_basic_parameter(self, uavs: Sequence[UAV], ues: Sequence[UE]) -> LinkMetrics:
         """Calculate shared geometry, probabilistic LoS/NLoS loss, RSRP and gain."""
-        self._check_shape(uavs, ues)
         for u, uav in enumerate(uavs):
             placement = solution(-1, uav.x, uav.y, uav.z, uav.theta_max)
             for k, ue in enumerate(ues):
@@ -451,8 +415,6 @@ class RadioEnvironment:
         self, power_matrix_w: np.ndarray, served_uav_idx: int, served_ue_idx: int,
     ) -> float:
         power = np.asarray(power_matrix_w, dtype=float)
-        if power.shape != (self.num_uavs, self.num_ues):
-            raise ValueError("power_matrix_w must have shape [num_uavs, num_ues]")
         if self.orthogonal_prb_pool:
             self.interference[served_uav_idx, served_ue_idx] = 0.0
             return 0.0
@@ -468,16 +430,8 @@ class RadioEnvironment:
         prb_matrix: np.ndarray | None = None,
     ) -> np.ndarray:
         association = self.association if association is None else np.asarray(association)
-        if association.shape != (self.num_ues,):
-            raise ValueError("association must contain one UAV index per UE")
         power = np.asarray(power_matrix_w, dtype=float)
-        if power.shape != (self.num_uavs, self.num_ues):
-            raise ValueError("power_matrix_w must have shape [num_uavs, num_ues]")
-        if prb_matrix is None:
-            raise ValueError("prb_matrix is required when power_matrix_w stores total link power")
         prbs = np.asarray(prb_matrix, dtype=float)
-        if prbs.shape != power.shape or np.any(prbs < 0):
-            raise ValueError("prb_matrix must be non-negative and match power_matrix_w")
         self.interference.fill(0.0)
         self.sinr.fill(0.0)
         self.sinr_db.fill(-np.inf)
@@ -499,8 +453,6 @@ class RadioEnvironment:
     ) -> np.ndarray:
         association = self.association if association is None else np.asarray(association)
         prbs = np.asarray(prb_matrix, dtype=float)
-        if prbs.shape != (self.num_uavs, self.num_ues):
-            raise ValueError("prb_matrix must have shape [num_uavs, num_ues]")
         self.spectral_efficiency = np.log2(1 + self.sinr)
         self.data_rate = prbs * self.phys.Bandwidth_BRP * self.spectral_efficiency
         for k, u in enumerate(association):
