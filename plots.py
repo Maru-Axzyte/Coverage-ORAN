@@ -236,3 +236,34 @@ def draw_surrogate_screening_quality(*, checks, generations, output,
     fig.savefig(output, dpi=180, bbox_inches="tight")
     plt.close(fig)
 
+
+def draw_served_ue_bar_chart(summary, output, *, maps_per_case=50, show=True):
+    """One bar per UE count; only complete, independently restarted map runs.
+
+    This helper only renders supplied results. It never runs GA or MILP.
+    """
+    rows = sorted(summary, key=lambda row: row["num_ues"])
+    if not rows or any(row["completed_maps"] != maps_per_case
+                       or row["mean_served_ues"] is None for row in rows):
+        raise RuntimeError("The bar chart requires all maps in every UE-count case")
+    counts = [row["num_ues"] for row in rows]
+    means = [row["mean_served_ues"] for row in rows]
+    fig, ax = plt.subplots(figsize=(10, 6))
+    positions = np.arange(len(rows))
+    bars = ax.bar(positions, means, width=.65, color="#3979ad", edgecolor="white")
+    ax.bar_label(bars, labels=[f"{value:.2f}" for value in means], padding=5, fontsize=11)
+    ax.set_xticks(positions, [str(count) for count in counts])
+    ax.set_xlabel("Number of UEs")
+    ax.set_ylabel("Mean number of served UEs")
+    ax.set_ylim(0., max(counts)*1.10)
+    ax.set_title(f"Final MILP-verified served UEs\nMean over {maps_per_case} random maps per case")
+    ax.set_axisbelow(True)
+    ax.grid(axis="y", alpha=.25)
+    fig.tight_layout()
+    output = Path(output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output, dpi=200, bbox_inches="tight")
+    if show:
+        plt.show()
+    plt.close(fig)
+
