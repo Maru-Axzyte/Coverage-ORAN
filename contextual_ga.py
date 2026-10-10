@@ -26,11 +26,22 @@ class ContextualCSAEA(CSAEA):
 
     def evaluate_exact(self, item):
         context_before = self._context().copy() if self.weight_learner else None
+        predicted_resource, prediction_batch = None, None
+        if self.weight_learner and hasattr(self, "joint_predictions"):
+            prediction = self.joint_predictions.get(self._joint_key(item))
+            if prediction is not None and "feature" in prediction:
+                # Capture the actual surrogate output BEFORE exact replacement.
+                # Exact cache entries and warm-up seeds are not forecasts.
+                pbar, nbar, z, _, _ = self._joint_stats(prediction["mean"])
+                predicted_resource = np.array([pbar, nbar, z], dtype=float)
+                context_before = prediction["weight_context"].copy()
+                prediction_batch = prediction["weight_prediction_batch"]
         super().evaluate_exact(item)
         if self.weight_learner:
             # Joint evaluation finalizes archive V after this base method returns.
             # Keep the pre-evaluation context, consume the finalized record at update.
-            self._pending_weight_observations.append((self.archive[-1], context_before))
+            self._pending_weight_observations.append(
+                (self.archive[-1], context_before, predicted_resource, prediction_batch))
         # Actual cache misses, not archive length, measure expensive MILP work.
         self.exact_trace.append({
             "unique_solves": int(getattr(self.milp_evaluator, "unique_solves", len(self.archive))),
@@ -86,7 +97,7 @@ class ContextualCSAEA(CSAEA):
             )
 
     def update_contextual_model(self, stage: str, items: Sequence[Individual] = ()) -> None:
-        """Fit vartheta from unambiguous exact resource-dominance pairs.
+        """Protect exact preferences, then calibrate prediction comparisons.
 
         A label is admitted only when two MILP-evaluated placements have equal
         service and one uses no more of *every* resource (strictly less of at
@@ -97,11 +108,12 @@ class ContextualCSAEA(CSAEA):
         V and epsilon do not filter training pairs; they belong to WE comparison.
         """
         if self.weight_learner:
-            for record, context in self._pending_weight_observations:
+            for record, context, forecast, batch in self._pending_weight_observations:
                 self.weight_learner.observe(
                     tuple(np.asarray(record.genome).ravel()), self._resource_vector(record),
                     len(record.coverage), self._service_score(record.coverage), record.violation,
                     context,
+                    predicted_resource=forecast, prediction_batch=batch,
                 )
             self._pending_weight_observations.clear()
         diagnostics = (self.weight_learner.update(self._context()) if self.weight_learner else {
@@ -119,9 +131,18 @@ class ContextualCSAEA(CSAEA):
         })
         evidence_log = (f"observations={diagnostics['unique_exact_observations']}; V_filter=off; "
                         if self.weight_learner else "")
+        fit_log = ""
+        if self.weight_learner:
+            fit_log = f"; prediction_pairs={diagnostics['prediction_pairs']}"
+            if diagnostics.get("stage1_pair_loss") is not None:
+                fit_log += (f"; pref={diagnostics['stage1_pair_loss']:.3g}"
+                            f"->{diagnostics['mean_pair_loss']:.3g}")
+            if diagnostics.get("prediction_mse_after") is not None:
+                fit_log += (f"; pred_MSE={diagnostics['prediction_mse_before']:.3g}"
+                            f"->{diagnostics['prediction_mse_after']:.3g}")
         print(f"CVXPY {stage}: {diagnostics['status']}; {self.weight_method}; "
               f"{evidence_log}pairs {diagnostics['training_pairs']}, "
-              f"weights={np.round(self._resource_weights, 3).tolist()}", flush=True)
+              f"weights={np.round(self._resource_weights, 3).tolist()}{fit_log}", flush=True)
 
     def _population_target(self, generation: int) -> int:
         """Expansion -> war -> consolidation schedule from the WE note."""

@@ -1,4 +1,4 @@
-"""Small, auditable extension of the existing contextual hinge learner.
+"""Exact preference protection followed by pre-MILP prediction calibration.
 
 No new resource preference is invented. Labels remain exact, equal-service
 Pareto comparisons, which cannot identify the best non-dominated trade-off.
@@ -12,7 +12,9 @@ from itertools import product
 import numpy as np
 import cvxpy as cp
 
-from preference_weights import ContextualPreferencePair, fit_history_contextual_weights
+from preference_weights import (
+    ContextualPreferencePair, ContextualPredictionPair, fit_history_contextual_weights,
+)
 
 
 @dataclass(frozen=True)
@@ -23,6 +25,8 @@ class WeightObservation:
     service: float
     context: np.ndarray
     violation: float
+    predicted_resource: np.ndarray | None = None
+    prediction_batch: tuple | None = None
 
 
 class AuditedContextualWeights:
@@ -39,10 +43,13 @@ class AuditedContextualWeights:
         self.observations = []
         self.seen = set()
         self.pairs = []
+        self.prediction_pairs = []
         self._paired_observations = set()
+        self._prediction_cursor = 0
         self.duplicates = 0
 
-    def observe(self, key, resource, served, service, violation, context):
+    def observe(self, key, resource, served, service, violation, context,
+                predicted_resource=None, prediction_batch=None):
         resource = np.asarray(resource, dtype=float).copy()
         context = np.asarray(context, dtype=float).copy()
         if key in self.seen:
@@ -51,9 +58,42 @@ class AuditedContextualWeights:
         self.seen.add(key)
         resource.setflags(write=False)
         context.setflags(write=False)
+        if predicted_resource is not None:
+            predicted_resource = np.asarray(predicted_resource, dtype=float).copy()
+            if (predicted_resource.shape != resource.shape
+                    or not np.all(np.isfinite(predicted_resource))):
+                predicted_resource = None
+            else:
+                predicted_resource.setflags(write=False)
         # V is diagnostic metadata, not a filter or a resource-preference label.
         self.observations.append(WeightObservation(
-            key, resource, int(served), float(service), context, float(violation)))
+            key, resource, int(served), float(service), context, float(violation),
+            predicted_resource, prediction_batch))
+
+    def _collect_prediction_pairs(self):
+        """Compare residuals, including non-Pareto pairs, without new labels.
+
+        Resource comparisons are meaningful after matching exact service.
+        Same batch/context means neither prediction saw the other's label.
+        Existing 80/64/256 evidence limits are reused; no extra MILP calls.
+        """
+        pending = []
+        for index in range(self._prediction_cursor, len(self.observations)):
+            item = self.observations[index]
+            if item.predicted_resource is None or item.prediction_batch is None:
+                continue
+            for other in self.observations[max(0, index-80):index]:
+                if (other.predicted_resource is None
+                        or item.prediction_batch != other.prediction_batch
+                        or not np.array_equal(item.context, other.context)
+                        or item.served != other.served
+                        or abs(item.service-other.service) > 1e-9):
+                    continue
+                error = ((item.predicted_resource-item.resource)
+                         - (other.predicted_resource-other.resource))
+                pending.append(ContextualPredictionPair(error.copy(), item.context.copy()))
+        self._prediction_cursor = len(self.observations)
+        return pending[-64:]
 
     def _collect_pairs(self):
         pending = []
@@ -98,14 +138,21 @@ class AuditedContextualWeights:
         previous = self.matrix.copy()
         pending = self._collect_pairs()
         new_pairs = [pair for _, pair in pending]
+        new_prediction_pairs = self._collect_prediction_pairs()
+        pre_prediction_mse = (float(np.mean([
+            float(p.error_delta @ self.matrix @ p.context)**2 for p in new_prediction_pairs]))
+            if new_prediction_pairs else None)
         predicted = [float((self.matrix @ p.context) @ (p.worse - p.better)) for p in new_pairs]
         pre_loss = (float(np.mean([max(0., p.margin - score) for p, score in zip(new_pairs, predicted)]))
                     if new_pairs else None)
         self.pairs = (self.pairs + new_pairs)[-256:]
+        self.prediction_pairs = (self.prediction_pairs + new_prediction_pairs)[-256:]
         importance = self.context_importance(self.pairs, current_context)
-        changed = bool(new_pairs)
+        prediction_importance = self.context_importance(self.prediction_pairs, current_context)
+        changed = bool(new_pairs or new_prediction_pairs)
         status = "no_new_pairs" if len(self.pairs) >= 3 and not changed else "insufficient_exact_pairs"
         train_loss = None
+        fit_diagnostics = {}
         if len(self.pairs) >= 3 and changed:
             if importance.sum() <= 0:
                 status = "zero_context_weight"
@@ -114,6 +161,8 @@ class AuditedContextualWeights:
                     fit = fit_history_contextual_weights(
                         self.pairs, average=average_before, previous=previous,
                         pair_weights=importance,
+                        prediction_pairs=self.prediction_pairs,
+                        prediction_weights=prediction_importance,
                     )
                     fitted = np.asarray(fit.vartheta, dtype=float)
                     usable = (fit.status in (cp.OPTIMAL, cp.OPTIMAL_INACCURATE)
@@ -129,13 +178,25 @@ class AuditedContextualWeights:
                         self.average_matrix = average_before + (
                             self.matrix - average_before) / (self.successful_updates + 1)
                         status, train_loss = fit.status, fit.mean_pair_loss
+                        fit_diagnostics = {
+                            name: getattr(fit, name, None) for name in (
+                                "stage1_status", "stage1_pair_loss", "preference_loss_limit",
+                                "preference_tolerance", "prediction_mse_before", "prediction_mse_after")}
                     else:
                         status = "fit_failed: invalid_solver_result"
                 except (ValueError, RuntimeError, cp.error.SolverError) as error:
                     status = f"fit_failed: {type(error).__name__}: {error}"
         contexts = np.asarray([p.context for p in self.pairs])
         return {
+            **fit_diagnostics,
+            "learning_objective": "lexicographic_preference_then_prediction",
             "status": status, "new_pairs": len(new_pairs), "training_pairs": len(self.pairs),
+            "new_prediction_pairs": len(new_prediction_pairs),
+            "prediction_pairs": len(self.prediction_pairs),
+            "prequential_prediction_mse": pre_prediction_mse,
+            "prediction_observations": sum(o.predicted_resource is not None for o in self.observations),
+            "prediction_pair_weight_sum": float(prediction_importance.sum()),
+            "prediction_fit_available": bool(prediction_importance.sum() > 0.),
             "mean_pair_loss": train_loss, "prequential_hinge": pre_loss,
             "prequential_correct": sum(score > 1e-12 for score in predicted),
             "prequential_pairs": len(predicted),

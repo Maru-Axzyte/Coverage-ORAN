@@ -144,7 +144,10 @@ class JointSurrogateMixin:
         self.joint_predictions[key] = {"mean": mean.copy(), "raw_mean": raw_mean.copy(),
             "covariance": covariance, "feature": feature, "before": base,
             "geometry_violation": geometry, "service_upper": upper,
-            "calibrated": calibrated, "residual_samples": len(rows)}
+            "calibrated": calibrated, "residual_samples": len(rows),
+            "weight_context": self._context().copy(),
+            "weight_prediction_batch": (self.current_generation,
+                                        getattr(self, "_prediction_batch_id", 0))}
         return item
 
     def evaluate_exact(self, item):
@@ -210,6 +213,7 @@ class JointSurrogateMixin:
         return grad
 
     def _joint_freeze(self):
+        self._prediction_batch_id = getattr(self, "_prediction_batch_id", 0) + 1
         self._frozen_context = super()._context().copy()
         self._frozen_archive = tuple(self.archive)
         self._frozen_records = tuple(self.joint_records)

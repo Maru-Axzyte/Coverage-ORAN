@@ -57,6 +57,24 @@ class ContextualPreferenceFit:
     vartheta: np.ndarray
     status: str
     mean_pair_loss: float
+    stage1_status: str | None = None
+    stage1_pair_loss: float | None = None
+    preference_loss_limit: float | None = None
+    preference_tolerance: float | None = None
+    prediction_mse_before: float | None = None
+    prediction_mse_after: float | None = None
+
+
+@dataclass(frozen=True)
+class ContextualPredictionPair:
+    """Difference of two pre-MILP residuals under the SAME frozen context.
+
+    error_delta = (rhat_b - r_b) - (rhat_a - r_a). No preference label
+    is inferred from this residual or from the current resource weights.
+    """
+
+    error_delta: np.ndarray
+    context: np.ndarray
 
 
 def fit_contextual_pairwise_weights(
@@ -121,17 +139,110 @@ def fit_history_contextual_weights(
     lambda_avg: float = 0.08,
     lambda_time: float = 0.20,
     solver: str = "CLARABEL",
+    prediction_pairs: Sequence[ContextualPredictionPair] = (),
+    prediction_weights: Sequence[float] | None = None,
 ) -> ContextualPreferenceFit:
-    """The merged note: weighted hinge + lambda/2 Frobenius penalties.
+    """Lexicographic fit: minimum preference hinge, then prediction error.
 
-    ``average`` is the arithmetic mean of B0 and successful past fits, frozen
-    before this solve. Each pair retains its historical context. The original
-    fitting API keeps its old penalty convention for legacy experiments.
+    Stage 1 minimizes the existing weighted exact-preference hinge ALONE.
+    Stage 2 minimizes half weighted prediction MSE plus the unchanged
+    lambda/2 history and temporal penalties, subject to preserving stage 1
+    within numerical tolerance. The cap protects aggregate hinge, not every
+    individual pair when its optimum is nonzero.
+
+    No predictions at warm-up: stage 2 uses only the regularizers, not fake
+    zero residual observations. Both solves are transactional to the caller.
     """
-    return fit_contextual_pairwise_weights(
-        pairs, prior=average, previous=previous, pair_weights=pair_weights,
-        prior_strength=lambda_avg / 2.0, temporal_strength=lambda_time / 2.0,
-        solver=solver,
+    average = np.asarray(average, dtype=float)
+    previous = np.asarray(previous, dtype=float)
+    importance = np.asarray(pair_weights, dtype=float)
+    if (not pairs or importance.shape != (len(pairs),)
+            or not np.all(np.isfinite(importance)) or np.any(importance < 0.)
+            or importance.sum() <= 0.):
+        raise RuntimeError("Two-stage weights need positive finite preference evidence")
+    importance = importance / importance.sum()
+    design = np.asarray([np.outer(p.worse-p.better, p.context).ravel() for p in pairs])
+    margins = np.asarray([p.margin for p in pairs], dtype=float)
+    if not np.all(np.isfinite(design)) or not np.all(np.isfinite(margins)):
+        raise RuntimeError("Non-finite preference evidence")
+
+    error_design = np.empty((0, average.size))
+    error_importance = np.empty(0)
+    if prediction_pairs:
+        error_design = np.asarray([
+            np.outer(p.error_delta, p.context).ravel() for p in prediction_pairs])
+        error_importance = (np.ones(len(prediction_pairs)) if prediction_weights is None
+                            else np.asarray(prediction_weights, dtype=float))
+        if (error_importance.shape != (len(prediction_pairs),)
+                or not np.all(np.isfinite(error_design))
+                or not np.all(np.isfinite(error_importance))
+                or np.any(error_importance < 0.)):
+            raise RuntimeError("Invalid prediction-comparison evidence")
+        if error_importance.sum() > 0.:
+            error_importance = error_importance / error_importance.sum()
+        else:
+            error_design = np.empty((0, average.size))
+            error_importance = np.empty(0)
+
+    dimension = average.shape[1]
+    corners = np.asarray([[1., *v] for v in product((0., 1.), repeat=dimension-1)])
+    matrix = cp.Variable(average.shape, name="two_stage_contextual_weights")
+    flat = cp.reshape(matrix, (average.size,), order="C")
+    hinge = importance @ cp.pos(margins-design @ flat)
+    constraints = [cp.sum(matrix[:, 0]) == 1., corners @ matrix.T >= 0.]
+    constraints.extend(cp.sum(matrix[:, j]) == 0. for j in range(1, dimension))
+
+    def measured_hinge(value):
+        return float(importance @ np.maximum(0., margins-design @ value.ravel()))
+
+    def valid_simplex(value):
+        if value is None or value.shape != average.shape or not np.all(np.isfinite(value)):
+            return False
+        outputs = corners @ value.T
+        return (np.min(outputs) >= -1e-7
+                and np.allclose(outputs.sum(axis=1), 1., atol=1e-7, rtol=0.))
+
+    def solve_checked(problem, loss_limit=None):
+        # Numerical tolerances only: not a tunable relaxation of WE or service.
+        for backend in dict.fromkeys((solver, "CLARABEL", "OSQP")):
+            options = ({"tol_gap_abs": 1e-9, "tol_gap_rel": 1e-9, "tol_feas": 1e-9}
+                       if backend == "CLARABEL" else
+                       {"eps_abs": 1e-8, "eps_rel": 1e-8, "max_iter": 100000}
+                       if backend == "OSQP" else {})
+            try:
+                problem.solve(solver=backend, warm_start=True, **options)
+            except cp.error.SolverError:
+                continue
+            value = None if matrix.value is None else np.asarray(matrix.value, dtype=float)
+            if (problem.status in (cp.OPTIMAL, cp.OPTIMAL_INACCURATE)
+                    and valid_simplex(value)
+                    and (loss_limit is None or measured_hinge(value) <= loss_limit)):
+                return value.copy(), str(problem.status)
+        raise RuntimeError("Two-stage weight solve failed numerical feasibility checks")
+
+    first, first_status = solve_checked(cp.Problem(cp.Minimize(hinge), constraints))
+    first_loss = measured_hinge(first)
+    tolerance = 1e-7
+    # Reserve half the numerical budget for solver residuals; independently
+    # reject the second solution if the measured hinge exceeds the full cap.
+    protected = constraints + [hinge <= first_loss + tolerance/2.]
+    prediction_loss = (0.5*cp.sum(cp.multiply(error_importance, cp.square(error_design @ flat)))
+                       if len(error_importance) else cp.Constant(0.))
+    objective = cp.Minimize(
+        prediction_loss
+        + lambda_avg/2.*cp.sum_squares(matrix-average)
+        + lambda_time/2.*cp.sum_squares(matrix-previous)
+    )
+    fitted, status = solve_checked(cp.Problem(objective, protected), first_loss+tolerance)
+
+    def prediction_mse(value):
+        return (float(error_importance @ np.square(error_design @ value.ravel()))
+                if len(error_importance) else None)
+
+    return ContextualPreferenceFit(
+        fitted, status, measured_hinge(fitted), first_status, first_loss,
+        first_loss+tolerance, tolerance,
+        prediction_mse(previous), prediction_mse(fitted),
     )
 
 
