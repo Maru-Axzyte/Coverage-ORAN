@@ -60,3 +60,33 @@ Traceback (most recent call last):
     def _max_dispatcher(a, axis=None, out=None, keepdims=None, initial=None,
     
 KeyboardInterrupt
+  Continuing after WE generation 50; MILP calls restored: 280
+Traceback (most recent call last):
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\baseline_150maps\run_we.py", line 296, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\baseline_150maps\run_we.py", line 253, in main
+    return run_one(output, args.worker)
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\baseline_150maps\run_we.py", line 189, in run_one
+    result = sweep.run_one(row['num_ues'], row['map_index'], row['map_seed'], defaults,
+        output / 'we' / 'logs' / (Path(name).stem + '.log'),
+    ...<2 lines>...
+                                 map_index=row['map_index'], map_seed=row['map_seed']),
+        checkpoint_every=10)
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\run_ue_count_sweep.py", line 148, in run_one
+    result = ga.run(resume_state=resume_state, checkpoint_callback=checkpoint)
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\joint_topk_we.py", line 171, in run
+    self.evaluate_surrogate(item)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\surrogate.py", line 99, in evaluate_surrogate
+    feature = self._joint_feature(anchor, genome)
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\surrogate.py", line 59, in _joint_feature
+    self._joint_record_y(anchor), ((genome-anchor.genome)/self.bounds.span).ravel()]
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\surrogate.py", line 39, in _joint_record_y
+    _, prbs, powers = self._exact_uav_loads(record.milp_result)
+                      ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\ga.py", line 218, in _exact_uav_loads
+    prbs[index] += float(choice["num_prbs"])
+    ~~~~^^^^^^^
+KeyboardInterrupt

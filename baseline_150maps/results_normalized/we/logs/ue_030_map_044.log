@@ -21,3 +21,6 @@ CVXPY WE-50: optimal; contextual; observations=280; V_filter=off; pairs 256, wei
 
 --- RESUME 30 UE map 44; seed=94155103 ---
 CVXPY WE-50: optimal; contextual; observations=280; V_filter=off; pairs 256, weights=[0.391, 0.315, 0.293]; prediction_pairs=86; pref=0->0; pred_MSE=0.00119->0.00119
+
+--- RESUME 30 UE map 44; seed=94155103 ---
+CVXPY WE-50: optimal; contextual; observations=280; V_filter=off; pairs 256, weights=[0.391, 0.315, 0.293]; prediction_pairs=86; pref=0->0; pred_MSE=0.00119->0.00119

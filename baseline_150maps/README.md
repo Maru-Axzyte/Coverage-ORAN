@@ -7,6 +7,26 @@ python -B baseline_150maps/run_all.py --prepare-only
 python -B baseline_150maps/run_all.py
 ```
 
+## Moving an existing study to another computer
+
+Copy the whole study and restored normalized source directory, including inputs, manifests,
+results and checkpoints. If source hashes differ after copying, first stop experiment runners:
+
+```powershell
+python -B baseline_150maps/repair_server_copy.py
+python -B baseline_150maps/repair_server_copy.py --apply
+python -B baseline_150maps/run_all.py --prepare-only
+```
+
+The repair defaults to results_normalized, not a new results_server folder. It restores source
+line endings ONLY when the resulting bytes exactly match the original saved SHA-256. Actual
+code changes, missing files, changed inputs or incompatible source manifests stop the repair.
+It also relocates approved normalized-source paths in selection.json to this project folder.
+It backs up every modified file first. Saved hashes and study identity are never overwritten;
+map inputs, results and checkpoints are unchanged. Without --apply it only checks.
+After successful preparation, run the normal run_all.py command to continue. Package and
+Python-version compatibility of native checkpoints still requires the original runtime setup.
+
 ## Frozen 150-map plan
 
 20/30/40/50/60/70 UE use 10/10/10/20/50/50 maps per method.
