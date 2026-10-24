@@ -1,0 +1,7 @@
+num_ues,completed_maps,required_maps,mean_served_ues,std_served_ues,min_served_ues,max_served_ues,feasible_maps
+20,5,5,20.0,0.0,20,20,5
+30,5,5,30.0,0.0,30,30,5
+40,5,5,40.0,0.0,40,40,5
+50,10,10,50.0,0.0,50,50,10
+60,30,30,58.0,1.6609095970747993,55,60,30
+70,0,30,,,,,0

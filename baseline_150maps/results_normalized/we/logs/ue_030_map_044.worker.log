@@ -1,0 +1,62 @@
+Traceback (most recent call last):
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\baseline_150maps\run_we.py", line 296, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\baseline_150maps\run_we.py", line 253, in main
+    return run_one(output, args.worker)
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\baseline_150maps\run_we.py", line 189, in run_one
+    result = sweep.run_one(row['num_ues'], row['map_index'], row['map_seed'], defaults,
+        output / 'we' / 'logs' / (Path(name).stem + '.log'),
+    ...<2 lines>...
+                                 map_index=row['map_index'], map_seed=row['map_seed']),
+        checkpoint_every=10)
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\run_ue_count_sweep.py", line 148, in run_one
+    result = ga.run(resume_state=resume_state, checkpoint_callback=checkpoint)
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\joint_topk_we.py", line 179, in run
+    brood = self._independent_brood(pop, brood_count)
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\contextual_ga.py", line 185, in _independent_brood
+    if self._individual_key(p) != self._individual_key(first)]
+                                  ~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\contextual_ga.py", line 167, in _individual_key
+    return tuple(np.round(np.asarray(genome, dtype=float), 8).ravel())
+                 ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Hoa Ly\AppData\Local\Programs\Python\Python313\Lib\site-packages\numpy\_core\fromnumeric.py", line 3712, in round
+    return _wrapfunc(a, 'round', decimals=decimals, out=out)
+  File "C:\Users\Hoa Ly\AppData\Local\Programs\Python\Python313\Lib\site-packages\numpy\_core\fromnumeric.py", line 54, in _wrapfunc
+    return bound(*args, **kwds)
+KeyboardInterrupt
+  Continuing after WE generation 50; MILP calls restored: 280
+Traceback (most recent call last):
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\baseline_150maps\run_we.py", line 296, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\baseline_150maps\run_we.py", line 253, in main
+    return run_one(output, args.worker)
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\baseline_150maps\run_we.py", line 189, in run_one
+    result = sweep.run_one(row['num_ues'], row['map_index'], row['map_seed'], defaults,
+        output / 'we' / 'logs' / (Path(name).stem + '.log'),
+    ...<2 lines>...
+                                 map_index=row['map_index'], map_seed=row['map_seed']),
+        checkpoint_every=10)
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\run_ue_count_sweep.py", line 148, in run_one
+    result = ga.run(resume_state=resume_state, checkpoint_callback=checkpoint)
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\joint_topk_we.py", line 198, in run
+    pi, mean_ranks, _ = rank_pool()
+                        ~~~~~~~~~^^
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\joint_topk_we.py", line 194, in rank_pool
+    return topk_probabilities(pool, self.joint_predictions, self._joint_key,
+        target, self.rank_samples, np.random.default_rng(rank_seed),
+        self._uav_power_budgets, self._uav_prb_budgets, self.prb_budget,
+        self._resource_weights, self.current_eps)
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\joint_topk_we.py", line 38, in topk_probabilities
+    _, _, _, j[:, i], overload = _resource_statistics(
+                                 ~~~~~~~~~~~~~~~~~~~~^
+        draw, power_limits, prb_limits, system_prbs, weights)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\surrogate.py", line 22, in _resource_statistics
+    z = np.maximum(np.max(p, axis=-1), nbar)
+                   ~~~~~~^^^^^^^^^^^^
+  File "C:\Users\Hoa Ly\AppData\Local\Programs\Python\Python313\Lib\site-packages\numpy\_core\fromnumeric.py", line 3044, in _max_dispatcher
+    def _max_dispatcher(a, axis=None, out=None, keepdims=None, initial=None,
+    
+KeyboardInterrupt

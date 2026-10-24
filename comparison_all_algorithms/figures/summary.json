@@ -1,0 +1,162 @@
+{
+  "pairwise": [
+    {
+      "num_ues": 20,
+      "baseline": "PSO-MILP",
+      "paired_maps": 3,
+      "we_mean_served": 20.0,
+      "baseline_mean_served": 20.0,
+      "matched_service_maps": 3,
+      "we_wins": 0,
+      "ties": 3,
+      "baseline_wins": 0
+    },
+    {
+      "num_ues": 20,
+      "baseline": "Zhong GA-MILP",
+      "paired_maps": 3,
+      "we_mean_served": 20.0,
+      "baseline_mean_served": 20.0,
+      "matched_service_maps": 3,
+      "we_wins": 0,
+      "ties": 3,
+      "baseline_wins": 0
+    },
+    {
+      "num_ues": 30,
+      "baseline": "PSO-MILP",
+      "paired_maps": 4,
+      "we_mean_served": 30.0,
+      "baseline_mean_served": 30.0,
+      "matched_service_maps": 4,
+      "we_wins": 0,
+      "ties": 4,
+      "baseline_wins": 0
+    },
+    {
+      "num_ues": 30,
+      "baseline": "Zhong GA-MILP",
+      "paired_maps": 4,
+      "we_mean_served": 30.0,
+      "baseline_mean_served": 30.0,
+      "matched_service_maps": 4,
+      "we_wins": 0,
+      "ties": 4,
+      "baseline_wins": 0
+    },
+    {
+      "num_ues": 40,
+      "baseline": "PSO-MILP",
+      "paired_maps": 4,
+      "we_mean_served": 40.0,
+      "baseline_mean_served": 40.0,
+      "matched_service_maps": 4,
+      "we_wins": 0,
+      "ties": 4,
+      "baseline_wins": 0
+    },
+    {
+      "num_ues": 40,
+      "baseline": "Zhong GA-MILP",
+      "paired_maps": 4,
+      "we_mean_served": 40.0,
+      "baseline_mean_served": 40.0,
+      "matched_service_maps": 4,
+      "we_wins": 0,
+      "ties": 4,
+      "baseline_wins": 0
+    },
+    {
+      "num_ues": 50,
+      "baseline": "PSO-MILP",
+      "paired_maps": 3,
+      "we_mean_served": 50.0,
+      "baseline_mean_served": 50.0,
+      "matched_service_maps": 3,
+      "we_wins": 0,
+      "ties": 3,
+      "baseline_wins": 0
+    },
+    {
+      "num_ues": 50,
+      "baseline": "Zhong GA-MILP",
+      "paired_maps": 3,
+      "we_mean_served": 50.0,
+      "baseline_mean_served": 50.0,
+      "matched_service_maps": 3,
+      "we_wins": 0,
+      "ties": 3,
+      "baseline_wins": 0
+    },
+    {
+      "num_ues": 60,
+      "baseline": "PSO-MILP",
+      "paired_maps": 17,
+      "we_mean_served": 58.64705882352941,
+      "baseline_mean_served": 59.294117647058826,
+      "matched_service_maps": 6,
+      "we_wins": 1,
+      "ties": 8,
+      "baseline_wins": 8
+    },
+    {
+      "num_ues": 60,
+      "baseline": "Zhong GA-MILP",
+      "paired_maps": 3,
+      "we_mean_served": 58.666666666666664,
+      "baseline_mean_served": 59.0,
+      "matched_service_maps": 1,
+      "we_wins": 0,
+      "ties": 2,
+      "baseline_wins": 1
+    },
+    {
+      "num_ues": 70,
+      "baseline": "PSO-MILP",
+      "paired_maps": 3,
+      "we_mean_served": 62.333333333333336,
+      "baseline_mean_served": 64.0,
+      "matched_service_maps": 0,
+      "we_wins": 0,
+      "ties": 0,
+      "baseline_wins": 3
+    },
+    {
+      "num_ues": 70,
+      "baseline": "Zhong GA-MILP",
+      "paired_maps": 3,
+      "we_mean_served": 62.333333333333336,
+      "baseline_mean_served": 63.666666666666664,
+      "matched_service_maps": 0,
+      "we_wins": 0,
+      "ties": 1,
+      "baseline_wins": 2
+    },
+    {
+      "num_ues": 70,
+      "baseline": "Zamani Grid-MILP",
+      "paired_maps": 18,
+      "we_mean_served": 62.44444444444444,
+      "baseline_mean_served": 24.77777777777778,
+      "matched_service_maps": 0,
+      "we_wins": 18,
+      "ties": 0,
+      "baseline_wins": 0
+    }
+  ],
+  "pending": [
+    "compare_60_70_extra30\\pso\\pso\\ue_060_map_049\\pso_result.json",
+    "compare_70ue_25\\pso\\pso\\ue_070_map_002\\pso_result.json",
+    "zamani_grid_milp\\results\\runs\\ue_070_map_047.json"
+  ],
+  "excluded": [
+    {
+      "source": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\baselines\\results\\20261013_124543_601771\\pso_result.json",
+      "reason": "PSO run outside the paired saved-map suite"
+    }
+  ],
+  "notes": [
+    "Means use the same maps within each method pair, not between different pairs.",
+    "Only completed runs are plotted; incomplete maps are missing, never scored zero."
+  ]
+}

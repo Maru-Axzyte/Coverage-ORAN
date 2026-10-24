@@ -1,0 +1,56 @@
+Preparing 5082 candidate placements for 70 UEs, 5 UAVs
+Time budget 1202.34 s; WE reference 59/70, 9.90 W, 135.0 PRBs
+Physical modes ready: 131989 Pareto link modes; 28.88 s
+Running HiGHS 1.15.1 (git hash: 04024d7): Copyright (c) 2026 under MIT licence terms
+Includes third-party software components, see THIRD_PARTY_NOTICES.md for full details
+Model: 137071 binaries, 83522 rows, 834612 nonzeros; remaining solver time 1169.62 s
+MIP has 83522 rows; 137071 cols; 834612 nonzeros; 137071 integer variables (137071 binary)
+Coefficient ranges:
+  Matrix  [1e-01, 1e+02]
+  Cost    [4e+04, 4e+04]
+  Bound   [1e+00, 1e+00]
+  RHS     [1e+00, 1e+02]
+Assessing feasibility of MIP using primal feasibility and integrality tolerance of       1e-06
+Solution has               num          max          sum
+Col     infeasibilities      0            0            0
+Integer infeasibilities      0            0            0
+Row     infeasibilities      0            0            0
+Row     residuals            0            0            0
+Presolving model
+83522 rows, 137071 cols, 834612 nonzeros 2s
+   Considered 132 / 137062 binaries; 132 probed  (rate 37/ms => expected probing finish time 5247s) 54s
+   Considered 269 / 137062 binaries; 269 probed  (rate 37/ms => expected probing finish time 5151s) 59s
+   Considered 396 / 137062 binaries; 396 probed  (rate 39/ms => expected probing finish time 5459s) 64s
+   Considered 498 / 137062 binaries; 498 probed  (rate 49/ms => expected probing finish time 6837s) 69s
+   Considered 614 / 137062 binaries; 614 probed  (rate 43/ms => expected probing finish time 5977s) 74s
+   Considered 748 / 137062 binaries; 748 probed  (rate 40/ms => expected probing finish time 5565s) 79s
+   Considered 873 / 137062 binaries; 873 probed  (rate 40/ms => expected probing finish time 5562s) 84s
+82406 rows, 137062 cols, 794824 nonzeros 93s
+Presolve reductions: rows 82406(-1116); columns 137062(-9); nonzeros 794824(-39788) 
+
+MIP start solution is feasible, objective value is 0
+
+Solving MIP model with:
+   82406 rows
+   137062 cols (137062 binary, 0 integer, 0 implied int., 0 continuous, 0 domain fixed)
+   794824 nonzeros
+   Thread count 8 (of 8 threads). Using 14 max workers. Parallel search on
+
+Src: B => Branching; C => Central rounding; F => Feasibility pump; H => Heuristic;
+     I => Shifting; J => Feasibility jump; L => Sub-MIP; P => Empty MIP; R => Randomized rounding;
+     S => Solve LP; T => Evaluate node; U => Unbounded; X => User solution; Y => HiGHS solution;
+     Z => ZI Round; l => Trivial lower; p => Trivial point; u => Trivial upper; z => Trivial zero
+
+        Nodes      |    B&B Tree     |            Objective Bounds              |  Dynamic Constraints |       Work      
+Src  Proc. InQueue |  Leaves   Expl. | BestBound       BestSol              Gap |   Cuts   InLp Confl. | LpIters     Time
+
+ J       0       0         0   0.00%   inf             41335.99           Large        0      0      0         0   178.2s
+Traceback (most recent call last):
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\zamani_grid_milp\main.py", line 373, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\zamani_grid_milp\main.py", line 311, in main
+    return run_map(args.worker, args.output_dir)
+  File "C:\Users\Hoa Ly\OneDrive\Documents\ANSA lab\Coverage_oran\GA-MILP-main\GA-MILP-main\zamani_grid_milp\main.py", line 171, in run_map
+    solver_return = model.run()
+MemoryError: bad allocation

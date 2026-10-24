@@ -116,31 +116,47 @@ class JointTopKMixin(JointSurrogateMixin):
             "genome": best.evaluated_genome.tolist(), "epsilon": self.current_eps,
             "resource_weights": self._resource_weights.tolist()}
 
-    def run(self):
+    def run(self, *, resume_state=None, checkpoint_callback=None):
         lower, span = np.asarray(self.bounds.lower), self.bounds.span
         initial = self.settings.population_size
         cap = self.settings.population_capacity or 2*initial
-        pop = [Individual(self._repair(g), source="initial") for g in self.initial_genomes[:initial]]
-        while len(pop) < initial:
-            genome = lower+self.rng.random((self.num_uavs, 4))*span
-            genome[:, :2] = lower[:2]+.5*span[:2]
-            pop.append(Individual(genome, source="initial"))
-        for item in pop[:min(initial, max(1, self.settings.initial_milp_seeds))]:
-            self.evaluate_exact(item)
-        self._joint_commit()
-        self._joint_freeze()
-        for item in pop:
-            self.evaluate_surrogate(item)
-        eps0 = float(np.quantile([x.violation for x in pop], .8))
-        self.current_eps = eps0
-        self._joint_commit()
-        # Update weights once the initial evaluation batch is complete.
-        self.update_contextual_model("warmup", pop)
-        best = min(self.joint_exact.values(), key=lambda x: self._joint_quality(x, 0.)).clone()
-        snapshots = [self._joint_snapshot(best, 0)]
-        cma = JointCMA.from_genome(best.evaluated_genome, lower, span)
-        cma_origins, pending_cma = {}, {}
-        for generation in range(1, self.settings.generations+1):
+        if resume_state is None:
+            pop = [Individual(self._repair(g), source="initial") for g in self.initial_genomes[:initial]]
+            while len(pop) < initial:
+                genome = lower+self.rng.random((self.num_uavs, 4))*span
+                genome[:, :2] = lower[:2]+.5*span[:2]
+                pop.append(Individual(genome, source="initial"))
+            for item in pop[:min(initial, max(1, self.settings.initial_milp_seeds))]:
+                self.evaluate_exact(item)
+            self._joint_commit()
+            self._joint_freeze()
+            for item in pop:
+                self.evaluate_surrogate(item)
+            eps0 = float(np.quantile([x.violation for x in pop], .8))
+            self.current_eps = eps0
+            self._joint_commit()
+            # Update weights once the initial evaluation batch is complete.
+            self.update_contextual_model("warmup", pop)
+            best = min(self.joint_exact.values(), key=lambda x: self._joint_quality(x, 0.)).clone()
+            snapshots = [self._joint_snapshot(best, 0)]
+            cma = JointCMA.from_genome(best.evaluated_genome, lower, span)
+            cma_origins, pending_cma = {}, {}
+            completed_generation = 0
+        else:
+            pop, eps0, best, snapshots, cma, cma_origins, pending_cma = (
+                resume_state[name] for name in
+                ("pop", "eps0", "best", "snapshots", "cma", "cma_origins", "pending_cma"))
+            completed_generation = resume_state["generation"]
+
+        def checkpoint(generation):
+            if checkpoint_callback is not None:
+                checkpoint_callback(self, dict(generation=generation, pop=pop, eps0=eps0,
+                    best=best, snapshots=snapshots, cma=cma, cma_origins=cma_origins,
+                    pending_cma=pending_cma))
+
+        if resume_state is None:
+            checkpoint(0)
+        for generation in range(completed_generation+1, self.settings.generations+1):
             self.current_generation = generation
             self.current_eps = eps0*max(0., 1.-generation/max(1., .7*self.settings.generations))**2
             if generation > 1 and (generation-1) % max(1, self.settings.update_period) == 0:
@@ -240,6 +256,7 @@ class JointTopKMixin(JointSurrogateMixin):
                 print(f"Joint WE {generation}/{self.settings.generations}: served {len(best.coverage)}/{len(self.ues)}, "
                       f"V={best.violation:.4g}, PRB {best.prbs_est:.0f}/{self.prb_budget:.0f}, "
                       f"P {best.power_est_w:.3f} W; MILP {len(self.archive)}, pool {len(pool)}", flush=True)
+            checkpoint(generation)
         self.current_eps = 0.
         best_genome = best.evaluated_genome.copy()
         # Runner contract indexes the final result by its physical placement.

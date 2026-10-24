@@ -1,0 +1,155 @@
+{
+  "reused": [
+    {
+      "map": "ue_020_map_002.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_020_map_002.json"
+    },
+    {
+      "map": "ue_020_map_005.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_020_map_005.json"
+    },
+    {
+      "map": "ue_030_map_004.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_030_map_004.json"
+    },
+    {
+      "map": "ue_050_map_001.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_050_map_001.json"
+    },
+    {
+      "map": "ue_050_map_006.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_050_map_006.json"
+    },
+    {
+      "map": "ue_050_map_007.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_050_map_007.json"
+    },
+    {
+      "map": "ue_060_map_001.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_001.json"
+    },
+    {
+      "map": "ue_060_map_002.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_002.json"
+    },
+    {
+      "map": "ue_060_map_003.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_003.json"
+    },
+    {
+      "map": "ue_060_map_004.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_004.json"
+    },
+    {
+      "map": "ue_060_map_005.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_005.json"
+    },
+    {
+      "map": "ue_060_map_006.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_006.json"
+    },
+    {
+      "map": "ue_060_map_007.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_007.json"
+    },
+    {
+      "map": "ue_060_map_008.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_008.json"
+    },
+    {
+      "map": "ue_060_map_009.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_009.json"
+    },
+    {
+      "map": "ue_060_map_010.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_010.json"
+    },
+    {
+      "map": "ue_060_map_011.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_011.json"
+    },
+    {
+      "map": "ue_060_map_012.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_012.json"
+    },
+    {
+      "map": "ue_060_map_013.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_013.json"
+    },
+    {
+      "map": "ue_060_map_014.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_014.json"
+    },
+    {
+      "map": "ue_060_map_015.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_015.json"
+    },
+    {
+      "map": "ue_060_map_016.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_016.json"
+    },
+    {
+      "map": "ue_060_map_017.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_017.json"
+    },
+    {
+      "map": "ue_060_map_018.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_018.json"
+    },
+    {
+      "map": "ue_060_map_019.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_019.json"
+    },
+    {
+      "map": "ue_060_map_020.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_020.json"
+    },
+    {
+      "map": "ue_060_map_021.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_021.json"
+    },
+    {
+      "map": "ue_060_map_022.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_022.json"
+    },
+    {
+      "map": "ue_060_map_023.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_023.json"
+    },
+    {
+      "map": "ue_060_map_024.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_024.json"
+    },
+    {
+      "map": "ue_060_map_025.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_025.json"
+    },
+    {
+      "map": "ue_060_map_026.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_026.json"
+    },
+    {
+      "map": "ue_060_map_027.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_027.json"
+    },
+    {
+      "map": "ue_060_map_028.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_028.json"
+    },
+    {
+      "map": "ue_060_map_029.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_029.json"
+    },
+    {
+      "map": "ue_060_map_030.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\runs\\ue_060_map_030.json"
+    }
+  ],
+  "copied_checkpoints": [
+    {
+      "map": "ue_070_map_001.json",
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\checkpoints\\ue_070_map_001.pkl"
+    }
+  ],
+  "not_reused": []
+}

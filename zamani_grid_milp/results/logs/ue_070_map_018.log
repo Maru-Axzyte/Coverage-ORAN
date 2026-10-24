@@ -1,0 +1,74 @@
+Preparing 5082 candidate placements for 70 UEs, 5 UAVs
+Time budget 1032.83 s; WE reference 64/70, 9.50 W, 135.0 PRBs
+Physical modes ready: 129256 Pareto link modes; 36.43 s
+Running HiGHS 1.15.1 (git hash: 04024d7): Copyright (c) 2026 under MIT licence terms
+Includes third-party software components, see THIRD_PARTY_NOTICES.md for full details
+Model: 134338 binaries, 83251 rows, 820676 nonzeros; remaining solver time 992.53 s
+MIP has 83251 rows; 134338 cols; 820676 nonzeros; 134338 integer variables (134338 binary)
+Coefficient ranges:
+  Matrix  [1e-01, 1e+02]
+  Cost    [4e+04, 4e+04]
+  Bound   [1e+00, 1e+00]
+  RHS     [1e+00, 1e+02]
+Assessing feasibility of MIP using primal feasibility and integrality tolerance of       1e-06
+Solution has               num          max          sum
+Col     infeasibilities      0            0            0
+Integer infeasibilities      0            0            0
+Row     infeasibilities      0            0            0
+Row     residuals            0            0            0
+Presolving model
+83251 rows, 134338 cols, 820676 nonzeros 3s
+   Considered 123 / 134316 binaries; 123 probed  (rate 40/ms => expected probing finish time 5525s) 59s
+   Considered 254 / 134316 binaries; 254 probed  (rate 39/ms => expected probing finish time 5348s) 64s
+   Considered 398 / 134316 binaries; 398 probed  (rate 37/ms => expected probing finish time 5123s) 69s
+   Considered 527 / 134316 binaries; 527 probed  (rate 38/ms => expected probing finish time 5280s) 74s
+   Considered 650 / 134316 binaries; 650 probed  (rate 40/ms => expected probing finish time 5535s) 79s
+   Considered 769 / 134316 binaries; 769 probed  (rate 42/ms => expected probing finish time 5735s) 84s
+   Considered 909 / 134316 binaries; 909 probed  (rate 38/ms => expected probing finish time 5246s) 89s
+81981 rows, 134316 cols, 778200 nonzeros 99s
+Presolve reductions: rows 81981(-1270); columns 134316(-22); nonzeros 778200(-42476) 
+
+MIP start solution is feasible, objective value is 0
+
+Solving MIP model with:
+   81981 rows
+   134316 cols (134316 binary, 0 integer, 0 implied int., 0 continuous, 0 domain fixed)
+   778200 nonzeros
+   Thread count 8 (of 8 threads). Using 14 max workers. Parallel search on
+
+Src: B => Branching; C => Central rounding; F => Feasibility pump; H => Heuristic;
+     I => Shifting; J => Feasibility jump; L => Sub-MIP; P => Empty MIP; R => Randomized rounding;
+     S => Solve LP; T => Evaluate node; U => Unbounded; X => User solution; Y => HiGHS solution;
+     Z => ZI Round; l => Trivial lower; p => Trivial point; u => Trivial upper; z => Trivial zero
+
+        Nodes      |    B&B Tree     |            Objective Bounds              |  Dynamic Constraints |       Work      
+Src  Proc. InQueue |  Leaves   Expl. | BestBound       BestSol              Gap |   Cuts   InLp Confl. | LpIters     Time
+
+ J       0       0         0   0.00%   inf             38615.99           Large        0      0      0         0   177.1s
+ R       0       0         0   0.00%   2683819.3       691073.6         288.36%        0      0      0     96102   993.3s
+         0       0         0   0.00%   2683819.3       691073.6         288.36%        0      0      0     96102   993.4s
+
+Solving report
+  Status            Time limit reached
+  Primal bound      691073.6
+  Dual bound        2683819.3
+  Gap               288.36%
+  P-D integral      55806.2042281
+  Solution status   feasible
+                    691073.6 (objective)
+                    0 (bound viol.)
+                    0 (int. viol.)
+                    0 (row viol.)
+  Timing            993.39
+                    100.79 (Presolve)
+                    892.57 (Solve)
+                    0.00 (Postsolve)
+  Max sub-MIP depth 0
+  Nodes             0
+  Repair LPs        0
+  LP iterations     96102
+                    0 (strong br.)
+                    0 (separation)
+                    0 (heuristics)
+WE 64/70, Grid-MILP 18/70; power 9.50/4.00 W; PRB 135.0/39
+Status=Time limit reached; MIP gap=2.8835506087918854; grid served upper bound=69; total=1034.12 s

@@ -38,7 +38,7 @@ class GASettings:
     """
     population_size: int = 400
     population_capacity: int | None = 4000
-    generations: int = 400
+    generations: int = 300
     initial_milp_seeds: int = 80
     update_period: int = 10
     sbx_eta: float = 18.0

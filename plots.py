@@ -243,7 +243,12 @@ def draw_served_ue_bar_chart(summary, output, *, maps_per_case=50, show=True):
     This helper only renders supplied results. It never runs GA or MILP.
     """
     rows = sorted(summary, key=lambda row: row["num_ues"])
-    if not rows or any(row["completed_maps"] != maps_per_case
+    def required(row):
+        if isinstance(maps_per_case, dict):
+            count = row['num_ues']
+            return maps_per_case[str(count)] if str(count) in maps_per_case else maps_per_case[count]
+        return maps_per_case
+    if not rows or any(row["completed_maps"] != required(row)
                        or row["mean_served_ues"] is None for row in rows):
         raise RuntimeError("The bar chart requires all maps in every UE-count case")
     counts = [row["num_ues"] for row in rows]
@@ -252,11 +257,13 @@ def draw_served_ue_bar_chart(summary, output, *, maps_per_case=50, show=True):
     positions = np.arange(len(rows))
     bars = ax.bar(positions, means, width=.65, color="#3979ad", edgecolor="white")
     ax.bar_label(bars, labels=[f"{value:.2f}" for value in means], padding=5, fontsize=11)
-    ax.set_xticks(positions, [str(count) for count in counts])
+    ax.set_xticks(positions, [f"{row['num_ues']}\n(n={required(row)})" for row in rows])
     ax.set_xlabel("Number of UEs")
     ax.set_ylabel("Mean number of served UEs")
     ax.set_ylim(0., max(counts)*1.10)
-    ax.set_title(f"Final MILP-verified served UEs\nMean over {maps_per_case} random maps per case")
+    detail = ("Map counts shown beneath each UE count" if isinstance(maps_per_case, dict)
+              else f"Mean over {maps_per_case} random maps per case")
+    ax.set_title(f"Final MILP-verified served UEs\n{detail}")
     ax.set_axisbelow(True)
     ax.grid(axis="y", alpha=.25)
     fig.tight_layout()

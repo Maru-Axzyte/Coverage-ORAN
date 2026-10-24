@@ -1,4 +1,4 @@
-"""Run in VS Code: 20/30/40/50/60/70 UEs, 50 random maps each.
+"""Run 20/30/40/50/60/70 UE cases with configurable map counts.
 
 Uses the existing main.py algorithm defaults, config.py physics and current
 GASettings. Does not change any of those files or perform work on import.
@@ -28,6 +28,7 @@ from main import build_parser as main_parser
 from optimizer import build_ga
 from plots import draw_served_ue_bar_chart
 from scenario import configured_scenario
+from sweep_checkpoint import atomic_bytes, restore_checkpoint, save_checkpoint
 
 
 UE_COUNTS = (20, 30, 40, 50, 60, 70)
@@ -53,11 +54,7 @@ def json_value(value):
 
 
 def save_text(path, text):
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_suffix(path.suffix+".tmp")
-    temporary.write_text(text, encoding="utf-8")
-    temporary.replace(path)
+    atomic_bytes(path, text.encode('utf-8'))
 
 
 def save_json(path, payload):
@@ -70,13 +67,20 @@ def scenario_seed(base_seed, count, map_index):
                .generate_state(1, dtype=np.uint32)[0])
 
 
-def experiment_manifest(defaults):
+def case_size(plan, count):
+    if isinstance(plan, dict):
+        return int(plan[str(count)] if str(count) in plan else plan[count])
+    return int(plan)
+
+
+def experiment_manifest(defaults, maps_per_case=MAPS_PER_CASE):
     # Hash the implementation too: resume must not mix old/new algorithms.
     sources = sorted(path for path in ROOT.glob("*.py") if not path.name.startswith("test_"))
     settings = {
         "format_version": 1,
+        "milp_objective": "10*served_count - total_prbs/system_prbs - total_power/sum_uav_power_budgets",
         "ue_counts": UE_COUNTS,
-        "maps_per_case": MAPS_PER_CASE,
+        "maps_per_case": maps_per_case,
         "base_map_seed": config.seed,
         "algorithm_seed": defaults.seed,
         "seed_policy": "different map seed; fixed algorithm seed; fresh learner/cache per run",
@@ -103,11 +107,12 @@ def experiment_manifest(defaults):
     return json_value(settings)
 
 
-def run_one(count, map_index, map_seed, defaults, log_path):
+def run_one(count, map_index, map_seed, defaults, log_path, *, checkpoint_path=None,
+            checkpoint_identity=None, checkpoint_every=10):
     phys, scenario = configured_scenario(
         seed=map_seed, ue_distribution=defaults.ue_distribution, num_ues=count,
     )
-    evaluator, _ = make_exact_evaluator(scenario.uavs, scenario.ues, phys)
+    evaluator, cache = make_exact_evaluator(scenario.uavs, scenario.ues, phys)
     ga = build_ga(
         uavs=scenario.uavs, ues=scenario.ues, phys=phys, evaluator=evaluator,
         population=defaults.population, population_capacity=defaults.population_capacity,
@@ -118,11 +123,29 @@ def run_one(count, map_index, map_seed, defaults, log_path):
         min_residual_samples=defaults.interval_min_samples,
         nominal_confidence=defaults.interval_confidence,
     )
+    resume_state, previous_elapsed = None, 0.
+    if checkpoint_path is not None and checkpoint_path.exists():
+        resume_state, previous_elapsed = restore_checkpoint(
+            checkpoint_path, checkpoint_identity, ga, cache, evaluator)
+        print(f"  Continuing after WE generation {resume_state['generation']}; "
+              f"MILP calls restored: {evaluator.unique_solves}", flush=True)
     started = time.perf_counter()
+
+    def checkpoint(optimizer, state):
+        generation = state['generation']
+        if checkpoint_path is not None and (generation % checkpoint_every == 0
+                or generation == defaults.generations):
+            save_checkpoint(checkpoint_path, checkpoint_identity, optimizer, state,
+                            cache, evaluator, previous_elapsed + time.perf_counter()-started)
+            print(f"Checkpoint saved: WE {generation}/{defaults.generations}; "
+                  f"MILP {evaluator.unique_solves}", flush=True)
+
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    with log_path.open("w", encoding="utf-8", buffering=1) as log:
+    with log_path.open("a", encoding="utf-8", buffering=1) as log:
         with contextlib.redirect_stdout(log), contextlib.redirect_stderr(log):
-            result = ga.run()
+            print(f"\n--- {'RESUME' if resume_state is not None else 'START'} "
+                  f"{count} UE map {map_index}; seed={map_seed} ---", flush=True)
+            result = ga.run(resume_state=resume_state, checkpoint_callback=checkpoint)
     final = ga.joint_exact[tuple(np.round(result["best_genome"], 7).ravel())]
     payload = final.exact_result.get("milp", final.exact_result)
     if not payload.get("solver_optimal", False):
@@ -134,7 +157,7 @@ def run_one(count, map_index, map_seed, defaults, log_path):
         "solver_optimal": True,
         "final_violation": float(final.violation),
         "total_power_w": float(final.power_est_w), "total_prbs": float(final.prbs_est),
-        "elapsed_seconds": time.perf_counter()-started,
+        "elapsed_seconds": previous_elapsed+time.perf_counter()-started,
         "unique_milp_solves": evaluator.unique_solves,
         "milp_solve_seconds": evaluator.solve_seconds,
         "final_genome": result["best_genome"].tolist(),
@@ -160,10 +183,11 @@ def summarize(records, counts, maps_per_case):
         case = [r for r in records if r["num_ues"] == count]
         if len({r["map_index"] for r in case}) != len(case):
             raise RuntimeError(f"Duplicate maps for {count} UEs")
-        complete = len(case) == maps_per_case
+        required = case_size(maps_per_case, count)
+        complete = len(case) == required
         values = [r["served_ues"] for r in case]
         rows.append({
-            "num_ues": count, "completed_maps": len(case), "required_maps": maps_per_case,
+            "num_ues": count, "completed_maps": len(case), "required_maps": required,
             "mean_served_ues": float(np.mean(values)) if complete else None,
             "std_served_ues": float(np.std(values, ddof=1)) if complete and len(values) > 1 else None,
             "min_served_ues": min(values) if complete else None,
@@ -190,7 +214,15 @@ def main(argv=None):
     parser.add_argument("--output-dir", type=Path, default=ROOT/"results_ue_count_sweep")
     parser.add_argument("--plot-only", action="store_true", help="Read saved maps and redraw; no GA/MILP")
     parser.add_argument("--no-show", action="store_true", help="Save PNG without opening a plot window")
+    parser.add_argument("--prepare-only", action="store_true", help="Create experiment manifest/folders; do not optimize")
+    parser.add_argument("--checkpoint-every", type=int, default=10, help="Save state every N completed WE generations")
+    parser.add_argument("--maps-per-count", nargs=6, type=int, metavar='N',
+                        help="Map counts for 20,30,40,50,60,70 UEs respectively")
     args = parser.parse_args(argv)
+    if args.checkpoint_every < 1:
+        parser.error("checkpoint-every must be positive")
+    if args.maps_per_count is not None and any(n < 1 for n in args.maps_per_count):
+        parser.error("Every map count must be positive")
     output_dir = args.output_dir.resolve()
     manifest_path = output_dir/"manifest.json"
     defaults = main_parser().parse_args([])
@@ -199,7 +231,9 @@ def main(argv=None):
             parser.error("No saved experiment in this output directory")
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     else:
-        manifest = experiment_manifest(defaults)
+        plan = (dict(zip(UE_COUNTS, args.maps_per_count))
+                if args.maps_per_count is not None else MAPS_PER_CASE)
+        manifest = experiment_manifest(defaults, plan)
         if manifest_path.exists():
             saved = json.loads(manifest_path.read_text(encoding="utf-8"))
             if saved != manifest:
@@ -210,13 +244,24 @@ def main(argv=None):
                 parser.error("Output directory is nonempty without a manifest; choose another directory")
             save_json(manifest_path, manifest)
 
+    if args.prepare_only:
+        for folder in ('runs', 'logs', 'checkpoints'):
+            (output_dir/folder).mkdir(parents=True, exist_ok=True)
+        total = sum(case_size(manifest['maps_per_case'], n) for n in manifest['ue_counts'])
+        print(f"Prepared {total} maps at {output_dir}")
+        print("Map counts: " + ", ".join(
+            f"{n} UE: {case_size(manifest['maps_per_case'], n)}" for n in manifest['ue_counts']))
+        print(f"Generations/map: {manifest['runner_settings']['generations']}; no optimization started.")
+        return []
+
     records = []
-    total = len(manifest["ue_counts"])*manifest["maps_per_case"]
+    total = sum(case_size(manifest['maps_per_case'], n) for n in manifest['ue_counts'])
     print(f"Experiment: {total} runs; {manifest['num_uavs']} UAV; "
           f"{manifest['runner_settings']['generations']} generations per run.", flush=True)
-    print("Completed maps are resumed. Demand generation stays unchanged; GA seed is fixed.", flush=True)
+    print(f"Completed maps skipped; in-map checkpoints every {args.checkpoint_every} WE generations.", flush=True)
+    experiment_id = hashlib.sha256(json.dumps(manifest, sort_keys=True).encode('utf-8')).hexdigest()
     for count in manifest["ue_counts"]:
-        for map_index in range(1, manifest["maps_per_case"]+1):
+        for map_index in range(1, case_size(manifest['maps_per_case'], count)+1):
             seed = scenario_seed(manifest["base_map_seed"], count, map_index)
             stem = f"ue_{count:03d}_map_{map_index:03d}"
             path = output_dir/"runs"/(stem+".json")
@@ -229,7 +274,17 @@ def main(argv=None):
                 log_path = output_dir/"logs"/(stem+".log")
                 print(f"[{len(records)+1}/{total}] Running {count} UEs, map {map_index}; "
                       f"seed={seed}\n  Progress log: {log_path}", flush=True)
-                row = run_one(count, map_index, seed, defaults, log_path)
+                checkpoint_path = output_dir/'checkpoints'/(stem+'.pkl')
+                checkpoint_identity = dict(experiment=experiment_id, count=count,
+                                           map_index=map_index, map_seed=seed)
+                try:
+                    row = run_one(count, map_index, seed, defaults, log_path,
+                        checkpoint_path=checkpoint_path, checkpoint_identity=checkpoint_identity,
+                        checkpoint_every=args.checkpoint_every)
+                except KeyboardInterrupt:
+                    print("\nStopped. Completed maps and the last complete generation checkpoint are retained."
+                          " Rerun the same command to continue.", flush=True)
+                    return records
                 save_json(path, row)
                 print(f"  Served {row['served_ues']}/{count}; "
                       f"V={row['final_violation']:.4g}; {row['elapsed_seconds']:.1f}s", flush=True)
@@ -243,7 +298,7 @@ def main(argv=None):
         mean = "pending" if row["mean_served_ues"] is None else f"{row['mean_served_ues']:.2f}"
         print(f"{row['num_ues']:8d} | {row['completed_maps']:3d}/{row['required_maps']:<9d} | {mean}")
     if any(row["mean_served_ues"] is None for row in summary):
-        parser.error("Experiment incomplete: partial maps are not presented as a 50-map mean")
+        parser.error("Experiment incomplete: partial groups are not presented as complete means")
     if any(row["feasible_maps"] < row["required_maps"] for row in summary):
         print("WARNING: Some final placements have nonzero V. Counts reflect verified allocation, "
               "not a claim that every placement is feasible; see feasible_maps in summary.csv.")

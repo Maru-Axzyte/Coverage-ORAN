@@ -1,0 +1,333 @@
+{
+  "source": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps",
+  "groups": [
+    {
+      "num_ues": 20,
+      "available": 5,
+      "required": 10,
+      "selected_completed": 5,
+      "selected_new": 5
+    },
+    {
+      "num_ues": 30,
+      "available": 5,
+      "required": 10,
+      "selected_completed": 5,
+      "selected_new": 5
+    },
+    {
+      "num_ues": 40,
+      "available": 5,
+      "required": 10,
+      "selected_completed": 5,
+      "selected_new": 5
+    },
+    {
+      "num_ues": 50,
+      "available": 10,
+      "required": 20,
+      "selected_completed": 10,
+      "selected_new": 10
+    },
+    {
+      "num_ues": 60,
+      "available": 30,
+      "required": 50,
+      "selected_completed": 30,
+      "selected_new": 20
+    },
+    {
+      "num_ues": 70,
+      "available": 0,
+      "required": 50,
+      "selected_completed": 0,
+      "selected_new": 50
+    }
+  ],
+  "rejected_manifests": [
+    {
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results\\manifest.json",
+      "reason": "different_code_or_settings"
+    },
+    {
+      "path": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300gen\\manifest.json",
+      "reason": "different_code_or_settings"
+    }
+  ],
+  "plans": [
+    {
+      "manifest": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_300maps\\manifest.json",
+      "settings": {
+        "format_version": 1,
+        "milp_objective": "10*served_count - total_prbs/system_prbs - total_power/sum_uav_power_budgets",
+        "ue_counts": [
+          20,
+          30,
+          40,
+          50,
+          60,
+          70
+        ],
+        "maps_per_case": 50,
+        "base_map_seed": 2026,
+        "algorithm_seed": 2026,
+        "seed_policy": "different map seed; fixed algorithm seed; fresh learner/cache per run",
+        "ue_distribution": "uniform",
+        "demand_policy": "unchanged env.py random choice from config.required_mbs",
+        "metric": "len(final MILP-verified incumbent coverage), not generation average",
+        "num_uavs": 5,
+        "area_m": [
+          1000,
+          1000
+        ],
+        "system_prbs": 135,
+        "per_uav_prb_bound": 135,
+        "per_uav_power_w": 2.0,
+        "ue_demand_levels_mbps": [
+          5,
+          10,
+          15
+        ],
+        "orthogonal_prb_pool": true,
+        "physics": {
+          "eta_ant": 1.0,
+          "d_0": 1.0,
+          "f_c": 3500000000.0,
+          "C": 300000000.0,
+          "k_B": 1.380649e-23,
+          "T": 290.0,
+          "Bandwidth_BRP": 360000,
+          "a": 2.0,
+          "F": 9.0,
+          "Theta_U": [
+            30.0,
+            35.0,
+            40.0,
+            45.0,
+            50.0,
+            55.0,
+            60.0
+          ],
+          "H_U": [
+            250.0,
+            260.0,
+            270.0,
+            280.0,
+            290.0,
+            300.0
+          ],
+          "P_max_w": 2.0,
+          "power_step_w": 0.1,
+          "allocation_max_prbs": 10,
+          "allocation_max_power_w": 1.0,
+          "P_min_dbm": null,
+          "P_max_dbm": 33.01029995663981,
+          "power_level_step_db": null
+        },
+        "solver": {
+          "time_limit_s": "inf",
+          "mip_gap": 0.0,
+          "log_to_console": false,
+          "minimize_power_tiebreak": true,
+          "symmetry_breaking": true,
+          "num_threads": 8,
+          "parallel_search": true
+        },
+        "ga_settings": {
+          "population_size": 400,
+          "population_capacity": 4000,
+          "generations": 300,
+          "initial_milp_seeds": 80,
+          "update_period": 10,
+          "sbx_eta": 18.0,
+          "sbx_uav_blocks": true,
+          "children_per_pair": 50,
+          "mutation_probability": 0.12,
+          "mutation_sigma": 0.08,
+          "elite_fraction": 0.15,
+          "beta_power": 0.3333333333333333,
+          "mu_prb": 0.3333333333333333,
+          "eta_bottleneck": 0.3333333333333333,
+          "transition_state_bandwidth": 1.0,
+          "transition_action_bandwidth": 0.5,
+          "transition_neighbors": 12,
+          "include_separation_constraint": true,
+          "min_uav_separation_m": 250.0,
+          "random_seed": 2026
+        },
+        "runner_settings": {
+          "population": 400,
+          "population_capacity": 4000,
+          "generations": 300,
+          "weight_method": "contextual",
+          "joint_milp_budget": 4,
+          "rank_samples": 64,
+          "cma_population": 8,
+          "interval_audit_period": 5,
+          "interval_min_samples": 20,
+          "interval_confidence": 0.95
+        },
+        "source_sha256": {
+          "cma.py": "2d13292c5d36eab0f8b58efeb0b1f6a5782c7d77645de9f52b79ae4062e48871",
+          "config.py": "050152da25c73eb34a3152dacca773be7807a1213c4503514525174d09b918e3",
+          "contextual_ga.py": "cc9fcbf77d9ad9fc9a34e9b7990fa1f28a0dd4b5e043bad85b5c9c50857ebae8",
+          "contextual_weight_audit.py": "c82ce70856b4bc5da59b8c40a1ca9ac9b72a99dc92cec7042da7f22eb7496b80",
+          "env.py": "fc20eff10e7795368ca897bc711c0d7e55a60cbaf2b1a53709311a916464980c",
+          "evaluation.py": "eda9830249917d7191fc0784dca75c2974234f054559220c0ad9c760f559ce2c",
+          "ga.py": "ee28158d4ea4174e5feff183295eca61fdeffd663da832132ac630d9958dcb7e",
+          "joint_topk_we.py": "0cbd7e386e677f07a1bf0e5b39e8c15cff949e3d4e4ef980db6e07de0c91ab39",
+          "main.py": "1ecd4f245b2ab1e78362dffedf463d363bd77388611b13bb15c5c1c7c8438950",
+          "milp.py": "b4eb54c49df597c5f57b1e76c544b62381890f387d7cb24ac9cd30c740d38747",
+          "optimizer.py": "39f998fbccd06a680826d2d68d2cde3d16d5bc533f22e1c3639cfbc1f60f1140",
+          "plots.py": "a8b3132eaa09b730578028030d35acb41def089c5b3a2d8ad4d86ec89bbe19a9",
+          "preference_weights.py": "5395dce4e5d501028773ed77c2d5943a1dc788521ac1e20873dd66fd9b1fca4f",
+          "run_ue_count_sweep.py": "dcaee3a812277f1a0d6363c6165546d6abe93d695c7000569fee226e93f548e5",
+          "scenario.py": "a2cdfed734cee5b83babd2cae4587ed28a76d8802936765cbcad5151e0b9e172",
+          "surrogate.py": "60ddbac5a1887f736f05c1070d152e9b6d97c29c569f0c7a0cf4ed49bb02bb61",
+          "sweep_checkpoint.py": "04841b6b90f8e7cea637fa74e337e9faf30c4dfd86627e19200e98f94463fae8"
+        }
+      }
+    },
+    {
+      "manifest": "C:\\Users\\Hoa Ly\\OneDrive\\Documents\\ANSA lab\\Coverage_oran\\GA-MILP-main\\GA-MILP-main\\we_normalized_300maps\\results_85maps\\manifest.json",
+      "settings": {
+        "format_version": 1,
+        "milp_objective": "10*served_count - total_prbs/system_prbs - total_power/sum_uav_power_budgets",
+        "ue_counts": [
+          20,
+          30,
+          40,
+          50,
+          60,
+          70
+        ],
+        "maps_per_case": {
+          "20": 5,
+          "30": 5,
+          "40": 5,
+          "50": 10,
+          "60": 30,
+          "70": 30
+        },
+        "base_map_seed": 2026,
+        "algorithm_seed": 2026,
+        "seed_policy": "different map seed; fixed algorithm seed; fresh learner/cache per run",
+        "ue_distribution": "uniform",
+        "demand_policy": "unchanged env.py random choice from config.required_mbs",
+        "metric": "len(final MILP-verified incumbent coverage), not generation average",
+        "num_uavs": 5,
+        "area_m": [
+          1000,
+          1000
+        ],
+        "system_prbs": 135,
+        "per_uav_prb_bound": 135,
+        "per_uav_power_w": 2.0,
+        "ue_demand_levels_mbps": [
+          5,
+          10,
+          15
+        ],
+        "orthogonal_prb_pool": true,
+        "physics": {
+          "eta_ant": 1.0,
+          "d_0": 1.0,
+          "f_c": 3500000000.0,
+          "C": 300000000.0,
+          "k_B": 1.380649e-23,
+          "T": 290.0,
+          "Bandwidth_BRP": 360000,
+          "a": 2.0,
+          "F": 9.0,
+          "Theta_U": [
+            30.0,
+            35.0,
+            40.0,
+            45.0,
+            50.0,
+            55.0,
+            60.0
+          ],
+          "H_U": [
+            250.0,
+            260.0,
+            270.0,
+            280.0,
+            290.0,
+            300.0
+          ],
+          "P_max_w": 2.0,
+          "power_step_w": 0.1,
+          "allocation_max_prbs": 10,
+          "allocation_max_power_w": 1.0,
+          "P_min_dbm": null,
+          "P_max_dbm": 33.01029995663981,
+          "power_level_step_db": null
+        },
+        "solver": {
+          "time_limit_s": "inf",
+          "mip_gap": 0.0,
+          "log_to_console": false,
+          "minimize_power_tiebreak": true,
+          "symmetry_breaking": true,
+          "num_threads": 8,
+          "parallel_search": true
+        },
+        "ga_settings": {
+          "population_size": 400,
+          "population_capacity": 4000,
+          "generations": 300,
+          "initial_milp_seeds": 80,
+          "update_period": 10,
+          "sbx_eta": 18.0,
+          "sbx_uav_blocks": true,
+          "children_per_pair": 50,
+          "mutation_probability": 0.12,
+          "mutation_sigma": 0.08,
+          "elite_fraction": 0.15,
+          "beta_power": 0.3333333333333333,
+          "mu_prb": 0.3333333333333333,
+          "eta_bottleneck": 0.3333333333333333,
+          "transition_state_bandwidth": 1.0,
+          "transition_action_bandwidth": 0.5,
+          "transition_neighbors": 12,
+          "include_separation_constraint": true,
+          "min_uav_separation_m": 250.0,
+          "random_seed": 2026
+        },
+        "runner_settings": {
+          "population": 400,
+          "population_capacity": 4000,
+          "generations": 300,
+          "weight_method": "contextual",
+          "joint_milp_budget": 4,
+          "rank_samples": 64,
+          "cma_population": 8,
+          "interval_audit_period": 5,
+          "interval_min_samples": 20,
+          "interval_confidence": 0.95
+        },
+        "source_sha256": {
+          "cma.py": "2d13292c5d36eab0f8b58efeb0b1f6a5782c7d77645de9f52b79ae4062e48871",
+          "config.py": "050152da25c73eb34a3152dacca773be7807a1213c4503514525174d09b918e3",
+          "contextual_ga.py": "cc9fcbf77d9ad9fc9a34e9b7990fa1f28a0dd4b5e043bad85b5c9c50857ebae8",
+          "contextual_weight_audit.py": "c82ce70856b4bc5da59b8c40a1ca9ac9b72a99dc92cec7042da7f22eb7496b80",
+          "env.py": "fc20eff10e7795368ca897bc711c0d7e55a60cbaf2b1a53709311a916464980c",
+          "evaluation.py": "eda9830249917d7191fc0784dca75c2974234f054559220c0ad9c760f559ce2c",
+          "ga.py": "ee28158d4ea4174e5feff183295eca61fdeffd663da832132ac630d9958dcb7e",
+          "joint_topk_we.py": "0cbd7e386e677f07a1bf0e5b39e8c15cff949e3d4e4ef980db6e07de0c91ab39",
+          "main.py": "1ecd4f245b2ab1e78362dffedf463d363bd77388611b13bb15c5c1c7c8438950",
+          "milp.py": "b4eb54c49df597c5f57b1e76c544b62381890f387d7cb24ac9cd30c740d38747",
+          "optimizer.py": "39f998fbccd06a680826d2d68d2cde3d16d5bc533f22e1c3639cfbc1f60f1140",
+          "plots.py": "a8b3132eaa09b730578028030d35acb41def089c5b3a2d8ad4d86ec89bbe19a9",
+          "preference_weights.py": "5395dce4e5d501028773ed77c2d5943a1dc788521ac1e20873dd66fd9b1fca4f",
+          "run_ue_count_sweep.py": "dcaee3a812277f1a0d6363c6165546d6abe93d695c7000569fee226e93f548e5",
+          "scenario.py": "a2cdfed734cee5b83babd2cae4587ed28a76d8802936765cbcad5151e0b9e172",
+          "surrogate.py": "60ddbac5a1887f736f05c1070d152e9b6d97c29c569f0c7a0cf4ed49bb02bb61",
+          "sweep_checkpoint.py": "04841b6b90f8e7cea637fa74e337e9faf30c4dfd86627e19200e98f94463fae8"
+        }
+      }
+    }
+  ],
+  "policy": "Keep completed maps; run missing IDs from the same normalized plan"
+}

@@ -64,8 +64,8 @@ output_json = Path("ga_mil_sol_1.json")
 time_limit_s = math.inf
 mip_gap = 0.02
 log_to_console = True
-# Exact lexicographic tie-break: maximise served UEs, then minimise PRBs,
-# then minimise power. This is shared by the HiGHS MILP and CVXPY MILP.
+# Shared MILP objective: 10 * served UEs - PRBs/system budget
+# - transmit power/total UAV power budget. False keeps count-only solving.
 minimize_power_tiebreak = True
 symmetry_breaking = True
 num_threads = 8

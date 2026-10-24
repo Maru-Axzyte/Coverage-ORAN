@@ -1,0 +1,306 @@
+{
+  "rows": [],
+  "groups": [
+    {
+      "method": "random",
+      "num_ues": 20,
+      "completed": 0,
+      "required": 10,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "random",
+      "num_ues": 30,
+      "completed": 0,
+      "required": 10,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "random",
+      "num_ues": 40,
+      "completed": 0,
+      "required": 10,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "random",
+      "num_ues": 50,
+      "completed": 0,
+      "required": 20,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "random",
+      "num_ues": 60,
+      "completed": 0,
+      "required": 50,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "random",
+      "num_ues": 70,
+      "completed": 0,
+      "required": 50,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "ga",
+      "num_ues": 20,
+      "completed": 0,
+      "required": 10,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "ga",
+      "num_ues": 30,
+      "completed": 0,
+      "required": 10,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "ga",
+      "num_ues": 40,
+      "completed": 0,
+      "required": 10,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "ga",
+      "num_ues": 50,
+      "completed": 0,
+      "required": 20,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "ga",
+      "num_ues": 60,
+      "completed": 0,
+      "required": 50,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "ga",
+      "num_ues": 70,
+      "completed": 0,
+      "required": 50,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "pso",
+      "num_ues": 20,
+      "completed": 0,
+      "required": 10,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "pso",
+      "num_ues": 30,
+      "completed": 0,
+      "required": 10,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "pso",
+      "num_ues": 40,
+      "completed": 0,
+      "required": 10,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "pso",
+      "num_ues": 50,
+      "completed": 0,
+      "required": 20,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "pso",
+      "num_ues": 60,
+      "completed": 0,
+      "required": 50,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "pso",
+      "num_ues": 70,
+      "completed": 0,
+      "required": 50,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "zhong",
+      "num_ues": 20,
+      "completed": 0,
+      "required": 10,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "zhong",
+      "num_ues": 30,
+      "completed": 0,
+      "required": 10,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "zhong",
+      "num_ues": 40,
+      "completed": 0,
+      "required": 10,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "zhong",
+      "num_ues": 50,
+      "completed": 0,
+      "required": 20,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "zhong",
+      "num_ues": 60,
+      "completed": 0,
+      "required": 50,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "zhong",
+      "num_ues": 70,
+      "completed": 0,
+      "required": 50,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "grid",
+      "num_ues": 20,
+      "completed": 0,
+      "required": 10,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "grid",
+      "num_ues": 30,
+      "completed": 0,
+      "required": 10,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "grid",
+      "num_ues": 40,
+      "completed": 0,
+      "required": 10,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "grid",
+      "num_ues": 50,
+      "completed": 0,
+      "required": 20,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "grid",
+      "num_ues": 60,
+      "completed": 0,
+      "required": 50,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    },
+    {
+      "method": "grid",
+      "num_ues": 70,
+      "completed": 0,
+      "required": 50,
+      "feasible": 0,
+      "mean_feasible_served_ues": null,
+      "mean_power_w_feasible": null,
+      "mean_prbs_feasible": null
+    }
+  ],
+  "note": "Partial groups are labelled completed/required. Old WE scores are not treated as new-objective evidence."
+}

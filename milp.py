@@ -487,28 +487,13 @@ class UAVMILP:
             max_total_prbs = self.system_prb_budget
             max_total_power_w = sum(uav.max_power_w for uav in self.uavs)
 
-            # Exact lexicographic order required by the GA comparator:
-            #   admitted UE count -> admitted demand -> PRBs -> power.
-            # Convert Mbps to integer demand units so the coefficients below
-            # provably preserve that order in a single MILP objective.
-            demand_bps = [max(1, int(round(ue.require_mbps * 1e6))) for ue in self.ues]
-            demand_gcd = demand_bps[0]
-            for value in demand_bps[1:]:
-                demand_gcd = math.gcd(demand_gcd, value)
-            demand_units = [value // demand_gcd for value in demand_bps]
-            admitted_demand = model.qsum(demand_units[k] * pi[k] for k in K)
-            max_demand_units = sum(demand_units)
-
-            # Resource penalty lies in [0, 2*max_total_prbs + 1].  Therefore
-            # one demand unit outweighs every possible resource improvement,
-            # and one extra UE outweighs all demand/resource differences.
-            resource_span = 2 * max_total_prbs + 1
-            demand_weight = resource_span + 1
-            count_weight = demand_weight * (max_demand_units + 1)
+            # Admission first, then an equal-weight normalized resource cost.
+            # Both penalties lie in [0, 1], so one extra admitted UE (+10)
+            # dominates every resource trade-off. Demand remains a hard QoS
+            # condition of a service mode, not an additional objective reward.
             model.setObjective(
-                count_weight * total_served
-                + demand_weight * admitted_demand
-                - 2 * total_num_prbs
+                10 * total_served
+                - total_num_prbs / max_total_prbs
                 - total_power_w / max_total_power_w,
                 gp.ObjSense.kMaximize,
             )

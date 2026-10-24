@@ -1,0 +1,94 @@
+
+--- START 60 UE map 2; seed=1412754066 ---
+CVXPY warmup: optimal; contextual; observations=80; V_filter=off; pairs 64, weights=[0.333, 0.333, 0.333]; prediction_pairs=0; pref=0->0
+Checkpoint saved: WE 0/300; MILP 80
+Joint WE 1/300: served 39/60, V=5.607, PRB 121/135, P 3.900 W; MILP 84, pool 808
+Joint WE 10/300: served 51/60, V=0.8694, PRB 135/135, P 7.000 W; MILP 120, pool 1078
+Checkpoint saved: WE 10/300; MILP 120
+CVXPY WE-10: optimal; contextual; observations=120; V_filter=off; pairs 117, weights=[0.351, 0.409, 0.24]; prediction_pairs=3; pref=0->5e-08; pred_MSE=0.00726->0.00668
+Joint WE 20/300: served 51/60, V=0.15, PRB 135/135, P 6.500 W; MILP 160, pool 1378
+Checkpoint saved: WE 20/300; MILP 160
+CVXPY WE-20: optimal; contextual; observations=160; V_filter=off; pairs 144, weights=[0.363, 0.41, 0.227]; prediction_pairs=7; pref=0->5e-08; pred_MSE=0.00288->0.00282
+Joint WE 30/300: served 53/60, V=0.05775, PRB 135/135, P 8.500 W; MILP 200, pool 1678
+Checkpoint saved: WE 30/300; MILP 200
+CVXPY WE-30: optimal; contextual; observations=200; V_filter=off; pairs 206, weights=[0.342, 0.416, 0.242]; prediction_pairs=10; pref=0->0; pred_MSE=0.00329->0.00323
+Joint WE 40/300: served 53/60, V=0.05775, PRB 135/135, P 8.500 W; MILP 240, pool 1978
+Checkpoint saved: WE 40/300; MILP 240
+CVXPY WE-40: optimal; contextual; observations=240; V_filter=off; pairs 256, weights=[0.324, 0.424, 0.252]; prediction_pairs=14; pref=0->0; pred_MSE=0.00271->0.00265
+Joint WE 50/300: served 53/60, V=0.05775, PRB 135/135, P 8.500 W; MILP 280, pool 2278
+Checkpoint saved: WE 50/300; MILP 280
+CVXPY WE-50: optimal; contextual; observations=280; V_filter=off; pairs 256, weights=[0.3, 0.441, 0.259]; prediction_pairs=18; pref=0->0; pred_MSE=0.00286->0.00271
+Joint WE 60/300: served 52/60, V=2.22e-16, PRB 135/135, P 8.500 W; MILP 320, pool 2578
+Checkpoint saved: WE 60/300; MILP 320
+CVXPY WE-60: optimal; contextual; observations=320; V_filter=off; pairs 256, weights=[0.3, 0.441, 0.259]; prediction_pairs=24; pref=0->5e-08; pred_MSE=0.00234->0.00233
+Joint WE 70/300: served 52/60, V=2.22e-16, PRB 135/135, P 8.500 W; MILP 360, pool 2878
+Checkpoint saved: WE 70/300; MILP 360
+CVXPY WE-70: optimal; contextual; observations=360; V_filter=off; pairs 256, weights=[0.284, 0.449, 0.267]; prediction_pairs=30; pref=0->0; pred_MSE=0.00189->0.00181
+Joint WE 80/300: served 52/60, V=2.22e-16, PRB 135/135, P 8.500 W; MILP 400, pool 3178
+Checkpoint saved: WE 80/300; MILP 400
+CVXPY WE-80: optimal; contextual; observations=400; V_filter=off; pairs 256, weights=[0.267, 0.463, 0.27]; prediction_pairs=33; pref=0->0; pred_MSE=0.00217->0.00206
+Joint WE 90/300: served 52/60, V=2.22e-16, PRB 135/135, P 8.500 W; MILP 440, pool 3478
+Checkpoint saved: WE 90/300; MILP 440
+CVXPY WE-90: optimal; contextual; observations=440; V_filter=off; pairs 256, weights=[0.253, 0.473, 0.274]; prediction_pairs=38; pref=0->0; pred_MSE=0.00197->0.00188
+Joint WE 100/300: served 53/60, V=0, PRB 135/135, P 8.500 W; MILP 480, pool 3778
+Checkpoint saved: WE 100/300; MILP 480
+CVXPY WE-100: optimal; contextual; observations=480; V_filter=off; pairs 256, weights=[0.242, 0.481, 0.277]; prediction_pairs=43; pref=0->0; pred_MSE=0.00173->0.00167
+Joint WE 110/300: served 53/60, V=0, PRB 135/135, P 8.800 W; MILP 520, pool 4000
+Checkpoint saved: WE 110/300; MILP 520
+CVXPY WE-110: optimal; contextual; observations=520; V_filter=off; pairs 256, weights=[0.235, 0.487, 0.279]; prediction_pairs=46; pref=0->0; pred_MSE=0.00156->0.00153
+Joint WE 120/300: served 53/60, V=4.441e-16, PRB 135/135, P 8.400 W; MILP 560, pool 4000
+Checkpoint saved: WE 120/300; MILP 560
+CVXPY WE-120: optimal; contextual; observations=560; V_filter=off; pairs 256, weights=[0.232, 0.488, 0.28]; prediction_pairs=52; pref=0->0; pred_MSE=0.00136->0.00135
+Joint WE 130/300: served 53/60, V=4.441e-16, PRB 135/135, P 8.400 W; MILP 600, pool 4000
+Checkpoint saved: WE 130/300; MILP 600
+CVXPY WE-130: optimal; contextual; observations=600; V_filter=off; pairs 256, weights=[0.228, 0.49, 0.282]; prediction_pairs=57; pref=0->0; pred_MSE=0.00131->0.00129
+Joint WE 140/300: served 54/60, V=2.22e-16, PRB 135/135, P 8.400 W; MILP 640, pool 4000
+Checkpoint saved: WE 140/300; MILP 640
+CVXPY WE-140: optimal; contextual; observations=640; V_filter=off; pairs 256, weights=[0.224, 0.493, 0.283]; prediction_pairs=61; pref=0->0; pred_MSE=0.00122->0.00121
+Joint WE 150/300: served 54/60, V=2.22e-16, PRB 135/135, P 8.400 W; MILP 680, pool 3856
+Checkpoint saved: WE 150/300; MILP 680
+CVXPY WE-150: optimal; contextual; observations=680; V_filter=off; pairs 256, weights=[0.222, 0.494, 0.284]; prediction_pairs=68; pref=0->0; pred_MSE=0.00109->0.00108
+Joint WE 160/300: served 54/60, V=2.22e-16, PRB 135/135, P 8.400 W; MILP 720, pool 3665
+Checkpoint saved: WE 160/300; MILP 720
+CVXPY WE-160: optimal; contextual; observations=720; V_filter=off; pairs 256, weights=[0.222, 0.493, 0.285]; prediction_pairs=83; pref=0->0; pred_MSE=0.000902->0.000905
+Joint WE 170/300: served 54/60, V=2.22e-16, PRB 135/135, P 8.400 W; MILP 760, pool 3475
+Checkpoint saved: WE 170/300; MILP 760
+CVXPY WE-170: optimal; contextual; observations=760; V_filter=off; pairs 256, weights=[0.224, 0.491, 0.285]; prediction_pairs=97; pref=0->0; pred_MSE=0.000782->0.000788
+Joint WE 180/300: served 54/60, V=2.22e-16, PRB 135/135, P 8.400 W; MILP 800, pool 3284
+Checkpoint saved: WE 180/300; MILP 800
+CVXPY WE-180: optimal; contextual; observations=800; V_filter=off; pairs 256, weights=[0.226, 0.489, 0.285]; prediction_pairs=118; pref=0->0; pred_MSE=0.00067->0.000676
+Joint WE 190/300: served 54/60, V=2.22e-16, PRB 135/135, P 8.400 W; MILP 840, pool 3094
+Checkpoint saved: WE 190/300; MILP 840
+CVXPY WE-190: optimal; contextual; observations=840; V_filter=off; pairs 256, weights=[0.228, 0.487, 0.285]; prediction_pairs=134; pref=0->0; pred_MSE=0.000602->0.000607
+Joint WE 200/300: served 55/60, V=0, PRB 135/135, P 9.900 W; MILP 880, pool 2903
+Checkpoint saved: WE 200/300; MILP 880
+CVXPY WE-200: optimal; contextual; observations=880; V_filter=off; pairs 256, weights=[0.226, 0.49, 0.284]; prediction_pairs=160; pref=0->0; pred_MSE=0.000531->0.000536
+Joint WE 210/300: served 55/60, V=0, PRB 135/135, P 9.900 W; MILP 920, pool 2713
+Checkpoint saved: WE 210/300; MILP 920
+CVXPY WE-210: optimal; contextual; observations=920; V_filter=off; pairs 256, weights=[0.228, 0.489, 0.283]; prediction_pairs=172; pref=0->0; pred_MSE=0.000522->0.000525
+Joint WE 220/300: served 55/60, V=0, PRB 135/135, P 9.700 W; MILP 960, pool 2522
+Checkpoint saved: WE 220/300; MILP 960
+CVXPY WE-220: optimal; contextual; observations=960; V_filter=off; pairs 256, weights=[0.229, 0.488, 0.283]; prediction_pairs=189; pref=0->0; pred_MSE=0.000481->0.000483
+Joint WE 230/300: served 55/60, V=0, PRB 135/135, P 9.700 W; MILP 1000, pool 2344
+Checkpoint saved: WE 230/300; MILP 1000
+CVXPY WE-230: optimal; contextual; observations=1000; V_filter=off; pairs 256, weights=[0.23, 0.487, 0.283]; prediction_pairs=195; pref=0->0; pred_MSE=0.000472->0.000473
+Joint WE 240/300: served 55/60, V=0, PRB 135/135, P 9.700 W; MILP 1040, pool 2184
+Checkpoint saved: WE 240/300; MILP 1040
+CVXPY WE-240: optimal; contextual; observations=1040; V_filter=off; pairs 256, weights=[0.23, 0.487, 0.283]; prediction_pairs=200; pref=0->0; pred_MSE=0.000464->0.000464
+Joint WE 250/300: served 55/60, V=0, PRB 135/135, P 9.700 W; MILP 1080, pool 2024
+Checkpoint saved: WE 250/300; MILP 1080
+CVXPY WE-250: optimal; contextual; observations=1080; V_filter=off; pairs 256, weights=[0.229, 0.488, 0.283]; prediction_pairs=203; pref=0->0; pred_MSE=0.000472->0.00047
+Joint WE 260/300: served 55/60, V=0, PRB 135/135, P 9.700 W; MILP 1120, pool 1864
+Checkpoint saved: WE 260/300; MILP 1120
+CVXPY WE-260: optimal; contextual; observations=1120; V_filter=off; pairs 256, weights=[0.299, 0.453, 0.248]; prediction_pairs=206; pref=0->5e-08; pred_MSE=0.000465->0.000604
+Joint WE 270/300: served 55/60, V=0, PRB 135/135, P 9.700 W; MILP 1160, pool 1704
+Checkpoint saved: WE 270/300; MILP 1160
+CVXPY WE-270: optimal; contextual; observations=1160; V_filter=off; pairs 256, weights=[0.3, 0.453, 0.247]; prediction_pairs=207; pref=0->5e-08; pred_MSE=0.000611->0.000614
+Joint WE 280/300: served 55/60, V=0, PRB 135/135, P 9.700 W; MILP 1200, pool 1544
+Checkpoint saved: WE 280/300; MILP 1200
+CVXPY WE-280: optimal; contextual; observations=1200; V_filter=off; pairs 256, weights=[0.3, 0.453, 0.247]; prediction_pairs=209; pref=0->5e-08; pred_MSE=0.000662->0.000662
+Joint WE 290/300: served 55/60, V=0, PRB 135/135, P 9.700 W; MILP 1240, pool 1384
+Checkpoint saved: WE 290/300; MILP 1240
+CVXPY WE-290: optimal; contextual; observations=1240; V_filter=off; pairs 256, weights=[0.3, 0.453, 0.247]; prediction_pairs=211; pref=0->5e-08; pred_MSE=0.000656->0.000656
+Joint WE 300/300: served 55/60, V=0, PRB 135/135, P 9.700 W; MILP 1280, pool 1224
+Checkpoint saved: WE 300/300; MILP 1280

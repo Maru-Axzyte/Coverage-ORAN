@@ -1,0 +1,62 @@
+[
+  {
+    "num_ues": 20,
+    "completed_maps": 5,
+    "required_maps": 50,
+    "mean_served_ues": null,
+    "std_served_ues": null,
+    "min_served_ues": null,
+    "max_served_ues": null,
+    "feasible_maps": 5
+  },
+  {
+    "num_ues": 30,
+    "completed_maps": 0,
+    "required_maps": 50,
+    "mean_served_ues": null,
+    "std_served_ues": null,
+    "min_served_ues": null,
+    "max_served_ues": null,
+    "feasible_maps": 0
+  },
+  {
+    "num_ues": 40,
+    "completed_maps": 0,
+    "required_maps": 50,
+    "mean_served_ues": null,
+    "std_served_ues": null,
+    "min_served_ues": null,
+    "max_served_ues": null,
+    "feasible_maps": 0
+  },
+  {
+    "num_ues": 50,
+    "completed_maps": 0,
+    "required_maps": 50,
+    "mean_served_ues": null,
+    "std_served_ues": null,
+    "min_served_ues": null,
+    "max_served_ues": null,
+    "feasible_maps": 0
+  },
+  {
+    "num_ues": 60,
+    "completed_maps": 0,
+    "required_maps": 50,
+    "mean_served_ues": null,
+    "std_served_ues": null,
+    "min_served_ues": null,
+    "max_served_ues": null,
+    "feasible_maps": 0
+  },
+  {
+    "num_ues": 70,
+    "completed_maps": 0,
+    "required_maps": 50,
+    "mean_served_ues": null,
+    "std_served_ues": null,
+    "min_served_ues": null,
+    "max_served_ues": null,
+    "feasible_maps": 0
+  }
+]

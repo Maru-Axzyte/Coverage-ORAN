@@ -1,0 +1,667 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T5]{fontenc}
+\usepackage[vietnamese]{babel}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage[margin=2.3cm]{geometry}
+\usepackage{booktabs,longtable,array,enumitem,xcolor,xurl,hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!60!black}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setlength{\emergencystretch}{2em}
+\setlist{itemsep=3pt,topsep=4pt}
+\newcommand{\R}{\mathbb R}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Prob}{\mathbb P}
+\newcommand{\ind}{\mathbf1}
+\newcommand{\pos}[1]{\left[#1\right]_+}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\clip}{\operatorname{clip}}
+\newcommand{\vct}{\operatorname{vec}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\roundop}{\operatorname{round}}
+\newcommand{\qnt}{\operatorname{quantile}}
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\newtheorem{proposition}{Mệnh đề}
+\title{GA--WE, surrogate chuyển trạng thái, CMA và MILP\\Bản lý thuyết đối chiếu với code chính}
+\author{Tài liệu hợp nhất}
+\date{Bản đối chiếu ngày 15 tháng 10 năm 2026}
+\begin{document}
+\maketitle
+\begin{abstract}
+Tài liệu mô tả luồng đang chạy từ \code{main.py}, không đề xuất thay đổi thuật toán.
+Các công thức được đối chiếu với các module đang được lắp ghép trong \code{optimizer.py}.
+Phân biệt rõ mô hình toán học lý tưởng, dung sai số trong code và các giới hạn chưa được chứng minh.
+Các thông số mặc định chỉ áp dụng khi không có tham số dòng lệnh ghi đè.
+\end{abstract}
+\tableofcontents
+\newpage
+
+\section{Phạm vi và đơn vị tối ưu}
+Luồng chính là
+\begin{center}
+\code{main.py} $\longrightarrow$ \code{optimizer.build_ga}
+$\longrightarrow$ \code{JointTopKCSAEA.run}.
+\end{center}
+Một cá thể là toàn bộ cấu hình của $U$ UAV, không phải một UAV riêng lẻ.
+Các con là phương án tính toán thay thế nhau; không cộng tài nguyên của các phương án khác nhau.
+
+Tách hai đối tượng:
+\[
+G_i\in\R^{U\times4}:\text{gene thô},\qquad
+X_i=\mathcal R(G_i):\text{placement được đánh giá}.
+\]
+Mỗi hàng chứa $(x_u,y_u,h_u,\theta_u)$; $\theta_u$ tính bằng độ trong code.
+Trong luồng chính, $\mathcal R$ là clip theo biên; không có callback repair bổ sung.
+Đặt $L=b_{\max}-b_{\min}$, chia và nhân theo từng tọa độ.
+\[
+\widetilde X=(X-b_{\min})/L,\qquad d=4U.
+\]
+Thông tin trạng thái exact được lưu trong archive. Thế hệ tiến hóa không phải thời gian bay vật lý.
+
+\section{Môi trường và công suất}
+\subsection{PRB và hình học}
+Các UAV dùng chung pool PRB trực giao:
+\[
+\sum_{u,k}n_{u,k}\le N_{\rm sys}^{\max}=135.
+\]
+Giới hạn riêng trong cấu hình hiện tại là $N_u\le135$, không phải quota $27$ PRB.
+Một UAV có thể dùng $40$ PRB nếu các điều kiện khác và tổng toàn hệ thống cho phép.
+Giả thiết trực giao làm nhiễu đồng kênh bằng không trong evaluator chính.
+\[
+r_{u,k}=\sqrt{(x_u-x_k)^2+(y_u-y_k)^2},\quad
+d_{u,k}=\max\{\sqrt{r_{u,k}^2+h_u^2},d_0\},
+\]
+\[
+R_u=h_u\tan(\theta_u),\qquad r_{u,k}\le R_u.
+\]
+Các hàm lượng giác phải đổi góc độ sang radian. Code kiểm tra footprint với dung sai $10^{-9}$ m.
+Nằm trong footprint chưa có nghĩa được cấp đủ tài nguyên.
+
+\subsection{Channel gain}
+Mô hình LoS/NLoS tham khảo Al-Hourani và cộng sự.\footnote{A.~Al-Hourani, S.~Kandeepan và S.~Lardner, ``Optimal LAP Altitude for Maximum Coverage,'' \emph{IEEE Wireless Communications Letters}, 3(6), 569--572, 2014. \href{https://doi.org/10.1109/LWC.2014.2342736}{doi:10.1109/LWC.2014.2342736}. Nguồn cho xác suất LoS và suy hao trung bình, không phải toàn bộ thuật toán hiện tại.}
+\[
+\alpha_{u,k}=\frac{180}{\pi}\operatorname{atan2}(h_u,\max(r_{u,k},10^{-9})),
+\qquad P_{u,k}^{\rm LoS}=\frac1{1+a_e\exp[-b_e(\alpha_{u,k}-a_e)]}.
+\]
+\[
+PL_{u,k}=20\log_{10}\frac{4\pi f_cd_{u,k}}{c_0}
++P_{u,k}^{\rm LoS}\eta_L+(1-P_{u,k}^{\rm LoS})\eta_N.
+\]
+\[
+G_u^{\rm ant}=\frac{2\eta_{\rm ant}}{1-\cos\theta_u},\qquad
+g_{u,k}=G_u^{\rm ant}10^{-PL_{u,k}/10}.
+\]
+Gain hình nón là giả thiết lý tưởng.\footnote{Nửa góc mở $\theta$ cho góc khối $\Omega=2\pi(1-\cos\theta)$; directivity $4\pi/\Omega$ dẫn đến $G=2\eta_{\rm ant}/(1-\cos\theta)$. Đây là phép suy ra từ anten phát đều trong nón, bỏ qua búp phụ và tổn hao anten thực.}
+Code dùng suy hao trung bình theo dB rồi chuyển sang gain tuyến tính; không lấy mẫu fading/LoS ở mỗi lần đánh giá. Gain này cũng không được diễn giải thành kỳ vọng chính xác của gain tuyến tính trong kênh ngẫu nhiên.
+
+\subsection{Công suất và tốc độ}
+$p_{u,k}$ là tổng công suất RF của link trên tất cả PRB của link.
+\[
+p_{u,k}^{\rm PRB}=p_{u,k}/n_{u,k},\quad
+N_{\rm PRB}=k_BT B_{\rm PRB}10^{NF/10},\quad
+\gamma_{u,k}=\frac{p_{u,k}g_{u,k}}{n_{u,k}N_{\rm PRB}},
+\]
+\[
+R_{u,k}=\frac{n_{u,k}B_{\rm PRB}}{10^6}
+\log_2\left(1+\frac{p_{u,k}g_{u,k}}{n_{u,k}N_{\rm PRB}}\right)\quad\text{Mbps}.
+\]
+Đây là mô hình tốc độ AWGN lý tưởng với công suất chia đều.\footnote{D.~Tse và P.~Viswanath, \emph{Fundamentals of Wireless Communication}, Cambridge University Press, 2005, Chương~5. \href{https://stanford.edu/~dntse/wireless_book.html}{Bản sách trên trang tác giả}. Không bao gồm đầy đủ overhead, MCS và tổn hao triển khai.}
+Code trả rate bằng $0$ khi $n=0$; mẫu số nhiễu được chặn dưới bởi $10^{-30}$ W.
+\[
+P_u=\sum_kp_{u,k}\le P_u^{\max},\qquad P_{\rm tot}=\sum_uP_u.
+\]
+$P_u^{\max}=2$ W là trần công suất phát, không phải pin còn lại.
+Nếu giữ công suất trong $\Delta t$, năng lượng RF là $P_{\rm tot}\Delta t$; biểu thức này chỉ giải thích đơn vị, không phải mô hình pin hay hover đã được triển khai.
+Không thêm số anten/MIMO, công suất bay hoặc ngưỡng SNR độc lập vào công thức nếu code chính không dùng chúng.
+
+\section{MILP tại placement cố định}
+Với mỗi mức công suất rời rạc khả dụng, code tìm số PRB nhỏ nhất đủ demand và giữ frontier Pareto.
+Giới hạn link hiện tại: $n\le10$, $p\le1$ W; các mức công suất được lọc từ lưới $0.1,0.2,\ldots,2$ W của \code{PhysConstant}.
+Không tạo mode ngoài footprint hoặc thiếu demand. Kiểm tra rate có dung sai số $10^{-9}$ Mbps.
+
+Gọi $a_{u,k,m}\in\{0,1\}$ là biến chọn mode; $s_k\in\{0,1\}$ là biến phục vụ:
+\[
+s_k=\sum_{u,m}a_{u,k,m}\le1,
+\]
+\[
+P_u=\sum_{k,m}p_{u,k,m}a_{u,k,m},\quad
+N_u=\sum_{k,m}n_{u,k,m}a_{u,k,m},
+\]
+\[
+P_u\le2,\qquad N_u\le135,\qquad \sum_uN_u\le135.
+\]
+Đây là biểu diễn rút gọn của MILP fixed-placement: code còn có biến association, rate và placement bị cố định để liên kết các đại lượng.
+Ràng buộc khoảng cách giữa UAV không được giải bên trong MILP này; nó thuộc violation của placement.
+
+Đặt $d_k$ là demand theo bps đã làm tròn rồi chia cho GCD của toàn bộ demand; với demand $5,10,15$ Mbps, các đơn vị thường là $1,2,3$.
+\[
+A_D=2N_{\rm sys}^{\max}+2,\qquad A_C=A_D(1+\sum_kd_k).
+\]
+Mục tiêu mặc định:
+\[
+\max\quad A_C\sum_ks_k+A_D\sum_kd_ks_k
+-2\sum_uN_u-\frac{\sum_uP_u}{\sum_uP_u^{\max}}.
+\]
+Thứ tự: số UE, demand phục vụ, giảm PRB, rồi giảm công suất. Các hệ số mã hóa là thiết kế của code dựa trên cận tài nguyên, không phải công thức từ bài WE.
+Nếu \code{minimize_power_tiebreak=False}, nhánh code còn lại chỉ tối đa số UE; tài liệu này mô tả mặc định True.
+
+Evaluator dùng HiGHS và yêu cầu trạng thái solver optimal trước khi chấp nhận nhãn exact.\footnote{HiGHS, \href{https://highs.dev/}{tài liệu chính thức}. Chứng nhận tối ưu chỉ áp dụng MILP đã xây dựng tại placement cố định, trong dung sai số của solver.}
+MIP gap yêu cầu của evaluator chính là $0$, thời gian mặc định vô hạn, $8$ threads. Giá trị gap $0.02$ của \code{SolverSettings()} thông thường không phải gap của evaluator exact.
+Cache dùng placement đã repair và làm tròn $7$ chữ số thập phân. Cache không phải phép đồng nhất toán học tuyệt đối: hai placement rất gần nhau có thể dùng cùng khóa.
+
+\section{Chỉ số tài nguyên, service và violation}
+\[
+C=\frac{\sum_ks_k}{K},\qquad S=\frac{\sum_kD_ks_k}{\sum_kD_k}.
+\]
+$S$ là tỷ lệ demand được phục vụ, không phải độ tin cậy xác suất.
+\[
+\bar p=\frac{\sum_uP_u}{\sum_uP_u^{\max}},\quad
+\bar n=\frac{\sum_uN_u}{N_{\rm sys}^{\max}},\quad
+\rho_P^{\max}=\max_u\frac{P_u}{P_u^{\max}},\quad z=\max(\rho_P^{\max},\bar n),
+\]
+\[
+\mathbf r=(\bar p,\bar n,z)^\top,\qquad
+\vartheta=(\beta,\mu,\eta)^\top\in\Delta_3,
+\qquad J=\vartheta^\top\mathbf r,\quad f_{\rm resource}=-J.
+\]
+Chỉ số idle bằng tỷ lệ UAV không phục vụ UE khi $C<1$, bằng $0$ khi $C=1$; chỉ được ghi chẩn đoán, không có trong fitness hiện tại.
+
+Với $[v]_+=\max(0,v)$:
+\[
+V_h(G)=\sum_u\frac{[h_{\min}-G_{u,h}]_++[G_{u,h}-h_{\max}]_+}{h_{\max}-h_{\min}},
+\]
+\[
+V_\theta(G)=\sum_u\frac{[\theta_{\min}-G_{u,\theta}]_++[G_{u,\theta}-\theta_{\max}]_+}{\theta_{\max}-\theta_{\min}},
+\]
+\[
+V_{\rm sep}(X)=\sum_{u<v}\left[1-\frac{\norm{(x_u,y_u,h_u)-(x_v,y_v,h_v)}}{d_{\min}}\right]_+,
+\]
+\[
+V_P=\sum_u[P_u/P_u^{\max}-1]_+,\qquad
+V_N=[\bar n-1]_+,\qquad V=V_h+V_\theta+V_{\rm sep}+V_P+V_N.
+\]
+Code bật separation, $d_{\min}=250$ m. Nếu tắt cờ tương ứng, thành phần đó bằng $0$.
+$V_h,V_\theta$ dùng gene thô; separation dùng placement sau repair. Không có $V_{xy}$ vì tọa độ được clip.
+Các khóa violation footprint rỗng cũ vẫn được xuất nhưng bằng $0$; không có $V_{\rm service}$.
+Exact MILP đã khống chế tài nguyên, nên $V_P,V_N$ của nhãn exact thường bằng $0$ hoặc chỉ còn sai số số học.
+
+\section{Ba cơ chế so sánh không hoàn toàn đồng nhất}
+Nguyên tắc feasibility-first kế thừa Deb; ngưỡng khám phá tham khảo $\varepsilon$-constraint.\footnote{K.~Deb, ``An efficient constraint handling method for genetic algorithms,'' \emph{CMAME}, 186, 311--338, 2000, \href{https://doi.org/10.1016/S0045-7825(99)00389-8}{doi}. T.~Takahama và S.~Sakai, ``Efficient Constrained Optimization by the $\varepsilon$ Constrained Differential Evolution Using an Approximation Model with Low Accuracy,'' 24(1), 34--45, 2009, \href{https://doi.org/10.1527/tjsai.24.34}{doi}. Phần mở rộng theo $C,S,J$ là thiết kế trong code hiện tại.}
+
+\subsection{Xếp hạng pool}
+Với $\tau=10^{-12}$, $e_t=\max(\varepsilon_t,\tau)$ và $b=\ind\{V>e_t\}$:
+\[
+Q_t=(b,\;bV,\;-C,\;-S,\;J).
+\]
+\code{_joint_quality()} so sánh tuple theo thứ tự từ điển, không thêm dung sai cho các thành phần sau. Monte Carlo thêm index làm khóa cuối để phá hòa.
+\[
+\varepsilon_0=\qnt_{0.8}\{V_i^{(0)}\},\qquad
+\varepsilon_t=\varepsilon_0\left[\max\left(0,1-\frac{t}{\max(1,0.7T)}\right)\right]^2.
+\]
+$V_i^{(0)}$ gồm giá trị exact cho seed và surrogate cho các cá thể còn lại.
+
+\subsection{Chọn bố mẹ bằng \code{_better()}}
+So sánh tuần tự, dừng ở điều kiện đầu tiên quyết định được:
+\begin{enumerate}
+\item Nếu chỉ một cá thể có $V\le e_t$, chọn cá thể đó.
+\item Nếu cả hai chưa đạt ngưỡng và $|V_A-V_B|>\tau$, chọn $V$ nhỏ hơn.
+\item Nếu $|C_A-C_B|>\tau$, chọn $C$ lớn hơn.
+\item Nếu $|S_A-S_B|>\tau$, chọn $S$ lớn hơn.
+\item Nếu $|f_A-f_B|>\tau$, chọn $f$ lớn hơn.
+\item Nếu vẫn hòa, chọn uncertainty nhỏ hơn theo phép so sánh nghiêm ngặt.
+\end{enumerate}
+Uncertainty của surrogate là $\sqrt{\operatorname{tr}(\Sigma)/q}$; exact bằng $0$.
+Không có ngưỡng ứng dụng $\epsilon_S$ trong code hiện tại. Dung sai $\tau$ không phải ngưỡng ``service tương đương'' có ý nghĩa nghiệp vụ.
+Quan hệ có dung sai theo cặp không được khẳng định là strict total order; nó chỉ dùng trong tournament, không dùng làm comparator sắp xếp pool.
+
+\subsection{Giữ incumbent exact}
+\code{_better_exact_incumbent()} dùng ngưỡng khả thi cố định $\tau$, sau đó so $V,C,S$ với dung sai $\tau$ như trên.
+Cuối cùng tính lại fitness của cả hai bằng cùng weights hiện tại và thay nếu
+\[
+f_A>f_B+\tau.
+\]
+Không dùng uncertainty để phá hòa ở hàm này.
+Ban đầu incumbent được lấy bằng $\min Q_0$ trên seed exact. Sau đó chỉ cập nhật với những ứng viên mới được chọn kiểm tra; không quét lại toàn archive sau mỗi lần weights đổi.
+Vì vậy đây là incumbent được duy trì, không bảo đảm là $\arg\min$ của toàn archive theo weights mới nhất.
+
+\section{Khởi tạo và bộ nhớ chuyển trạng thái}
+Mặc định \code{main.py} không truyền initial genomes. Với mỗi cá thể khởi tạo:
+\[
+x_u=y_u=500\text{ m},\quad h_u\sim\mathcal U(250,300),\quad
+\theta_u\sim\mathcal U(30,60).
+\]
+Các mẫu height/theta được rút riêng cho các UAV và cấu hình. Seed mặc định $2026$ làm run có thể tái lập.
+Đánh giá $\min(N_0,\max(1,N_{\rm seed}))$ cá thể đầu bằng MILP; dự đoán phần còn lại rồi đặt $\varepsilon_0$.
+Với cùng $x,y$ và độ cao chênh tối đa $50$ m, tất cả cấu hình khởi tạo mặc định vi phạm separation $250$ m. MILP vẫn giải phân bổ nhưng chưa chứng nhận placement khả thi.
+
+Trạng thái nguyên thủy trong code:
+\[
+\mathbf m=\left[(P_u/P_u^{\max})_{u=1}^U,\ (N_u/L_{N,u})_{u=1}^U,\ C,S\right]^\top,\quad q=2U+2.
+\]
+Ở cấu hình hiện tại $L_{N,u}=135$ cho mọi $u$; đây là thang chuẩn hóa, không phải quota riêng.
+\[
+\bar p=\frac{\sum_uP_u^{\max}m_{P,u}}{\sum_uP_u^{\max}},\qquad
+\bar n=\frac{\sum_uL_{N,u}m_{N,u}}{135}.
+\]
+Mỗi transition lưu
+\[
+\ell=(\mathbf z_\ell^{\rm pre},\mathbf m_\ell^{\rm pre},\mathbf a_\ell,
+\mathbf m_\ell^{\rm post},\mathbf e_\ell^{\rm raw},\mathbf e_\ell^{\rm corr}).
+\]
+Với cấu hình neo exact $A$:
+\[
+\mathbf z^{\rm pre}=\vct((A-b_{\min})/L),\qquad
+\mathbf a=\vct((\mathcal R(G)-A)/L),\quad
+\Delta\mathbf m_\ell=\mathbf m_\ell^{\rm post}-\mathbf m_\ell^{\rm pre}.
+\]
+Neo được kế thừa từ bố/mẹ có record exact; nếu thiếu thì lấy record exact gần placement chuẩn hóa nhất.
+Con thứ nhất ưu tiên neo của bố thứ nhất, con thứ hai ưu tiên neo của bố thứ hai. Neo của proposal CMA được gán từ incumbent, không nhất thiết từ mean của CMA.
+Các transition dùng chung giữa các gia đình, không cô lập theo một UAV hay một cặp bố mẹ.
+
+\section{Surrogate kernel và covariance}
+Trung bình kernel dựa trên nền tảng Nadaraya.\footnote{E.~A.~Nadaraya, ``On Estimating Regression,'' \emph{Theory of Probability and Its Applications}, 9(1), 141--142, 1964, \href{https://doi.org/10.1137/1109020}{doi}. Đặc trưng state--action, residual memory và covariance dưới đây là thiết kế của mô hình hiện tại.}
+Đặt $F=(\mathbf z^{\rm pre},\mathbf m^{\rm pre},\mathbf a)$.
+\[
+D_\ell=\frac{\norm{\mathbf z-\mathbf z_\ell}^2}{d l_s^2}
++\frac{\norm{\mathbf m-\mathbf m_\ell}^2}{q l_s^2}
++\frac{\norm{\mathbf a-\mathbf a_\ell}^2}{d l_a^2}.
+\]
+Lấy tối đa $k=12$ láng giềng gần nhất, $l_s=1$, $l_a=0.5$:
+\[
+w_\ell=\frac{\exp[-(D_\ell-D_{\min})/2]}{\sum_j\exp[-(D_j-D_{\min})/2]},\quad
+\nu=1-e^{-D_{\min}/2},\quad n_{\rm eff}=1/\sum_\ell w_\ell^2.
+\]
+\[
+\widehat{\mathbf m}_{\rm raw}=\mathbf m^{\rm pre}+\sum_\ell w_\ell\Delta\mathbf m_\ell.
+\]
+Nếu chưa có transition: giữ tài nguyên của neo; đặt
+\[
+\widehat C_{\rm raw}=C_{\rm geo}(X)\frac{|\mathcal U_A^{\rm served}|}{\max(1,|\mathcal U_A^{\rm geo}|)},\quad
+\widehat S_{\rm raw}=S_{\rm geo}(X)\frac{S_A}{\max(S_{\rm geo}(A),10^{-12})}.
+\]
+$\mathcal U^{\rm geo}$ là hợp footprint có gain dương, không phải tập UE được phân bổ tạm.
+\[
+\mathbf e_\ell^{\rm raw}=\mathbf m_\ell^{\rm exact}-\widehat{\mathbf m}_{\ell,\rm raw},\qquad
+\mathbf e_\ell^{\rm corr}=\mathbf m_\ell^{\rm exact}-\widehat{\mathbf m}_{\ell}.
+\]
+Khi tổng số record trong cửa sổ đạt $n_{\min}=20$, code dùng \emph{raw error} cho cả bias và covariance:
+\[
+\widehat{\mathbf b}=\sum_\ell w_\ell\mathbf e_\ell^{\rm raw},
+\]
+\[
+\widehat\Sigma=\frac{\sum_\ell w_\ell
+(\mathbf e_\ell^{\rm raw}-\widehat{\mathbf b})
+(\mathbf e_\ell^{\rm raw}-\widehat{\mathbf b})^\top}
+{\max(1-\sum_\ell w_\ell^2,10^{-6})}
++0.03^2(1+\nu^2+1/\max(n_{\rm eff},1))I.
+\]
+Nếu chưa đạt ngưỡng:
+\[
+\widehat{\mathbf b}=0,\qquad\widehat\Sigma=0.2^2(1+\nu^2)I.
+\]
+Ngưỡng $20$ xét tổng record, không phải số láng giềng hay $n_{\rm eff}$. Từ khóa \code{calibrated} chỉ đánh dấu đủ ngưỡng này, không chứng nhận calibration thống kê.
+\[
+\widehat{\mathbf m}=\mathcal P(\widehat{\mathbf m}_{\rm raw}+\widehat{\mathbf b}).
+\]
+$\mathcal P$ chặn tài nguyên dưới bởi $0$, chặn $C,S$ trong $[0,C_{\rm geo}]$ và $[0,S_{\rm geo}]$; không chặn tài nguyên trên bởi $1$.
+Tính lại $V,J$ từ primitives, không huấn luyện một mô hình $f$ độc lập.
+
+Đầu thế hệ đóng băng context, archive và record; weights chỉ cập nhật ngoài batch. Cuối thế hệ nhập transition mới và giữ
+\[
+W=\max(n_{\min},10k)=120
+\]
+record mới nhất theo mặc định. Các archive/context observations có bộ nhớ và thời điểm tiêu thụ riêng.
+
+\section{Sinh con: tournament, SBX và mutation}
+Tournament lấy ngẫu nhiên hai cá thể không lặp và chọn bằng \code{_better()}.
+Chọn bố thứ hai từ tập có placement key khác bố thứ nhất (key placement làm tròn $8$ chữ số); có fallback nếu quần thể suy biến.
+SBX theo khối UAV kế thừa Deb--Agrawal.\footnote{K.~Deb và R.~B.~Agrawal, ``Simulated Binary Crossover for Continuous Search Space,'' \emph{Complex Systems}, 9, 115--148, 1995. \href{https://content.wolfram.com/uploads/sites/13/2018/02/09-2-2.pdf}{Bản nhà xuất bản}. Chia khối UAV là điều chỉnh trong code.}
+Với $v_u\sim\mathcal U(0,1)$ và $\eta_{\rm SBX}=18$:
+\[
+b_u=\begin{cases}(2v_u)^{1/(\eta_{\rm SBX}+1)},&v_u\le1/2,\\
+[1/(2(1-v_u))]^{1/(\eta_{\rm SBX}+1)},&v_u>1/2.
+\end{cases}
+\]
+Một $b_u$ dùng chung cho bốn gene của UAV $u$:
+\[
+G_{u,1}=\tfrac12[(1+b_u)G_{u,A}+(1-b_u)G_{u,B}],\quad
+G_{u,2}=\tfrac12[(1-b_u)G_{u,A}+(1+b_u)G_{u,B}].
+\]
+Mutation theo từng gene:
+\[
+G'_{u,j}=G_{u,j}+M_{u,j}\xi_{u,j}L_j,\quad
+M_{u,j}\sim{\rm Bernoulli}(0.12),\quad\xi_{u,j}\sim\mathcal N(0,0.08^2).
+\]
+Giữ gene thô sau mutation; repair chỉ khi đánh giá. Mỗi lần SBX bắt đầu lại từ hai bố mẹ gốc. Hai con cùng một lần SBX có tương quan, không độc lập thống kê.
+Mỗi lượt chọn cặp sinh tối đa $50$ con, bị cắt theo ngân sách còn lại. Không có cơ chế tự học số con theo chất lượng cặp.
+
+\section{Kích thước pool và số cá thể sống sót}
+Với $N_0=400$, $N_{\rm cap}=4000$, $T=400$, đặt $r=t/\max(T,1)$,
+\[
+N_m=\max(N_0,\lfloor N_{\rm cap}/2\rfloor),\quad
+N_e=\max(N_0,\lfloor N_{\rm cap}/5\rfloor).
+\]
+\[
+N_{\rm sched}(r)=\begin{cases}
+N_0+(N_{\rm cap}-N_0)r/0.4,&r\le0.4,\\
+N_{\rm cap}+(N_m-N_{\rm cap})(r-0.4)/0.35,&0.4<r\le0.75,\\
+N_m+(N_e-N_m)(r-0.75)/0.25,&r>0.75.
+\end{cases}
+\]
+Code làm tròn và clip lịch vào $[N_0,N_{\rm cap}]$.
+Với $\lambda_C=8$ proposal CMA tối đa:
+\[
+B_{\rm reserve}=\min(N_{\rm cap}-2,\max(N_0,\lambda_C+2)),
+\]
+\[
+K'_t=\max\{2,\min(N_{\rm sched}(t),N_{\rm cap}-B_{\rm reserve})\}.
+\]
+Trước sinh, nếu quá đông bố mẹ thì cắt theo $Q_t$ tới $N_{\rm cap}-B_{\rm reserve}$ và bảo vệ incumbent.
+Với $n_t$ bố mẹ sau bước đó:
+\[
+A_t=N_{\rm cap}-n_t,\quad n_{C,t}=\min(\lambda_C,\max(0,A_t-2)),
+\]
+\[
+n_{G,t}=\min\{\max(N_0,K'_t-n_t),A_t-n_{C,t}\}.
+\]
+Pool gồm bố mẹ, $n_{G,t}$ con GA và $n_{C,t}$ con CMA. Loại trùng bằng gene thô làm tròn $7$ chữ số; ưu tiên bản exact khi trùng.
+\[
+K_t=\min(K'_t,|\mathcal P_t|).
+\]
+Mặc định $B_{\rm reserve}=400$ nên số giữ sau chọn lọc tối đa $3600$; pool trước chọn lọc vẫn có thể tới $4000$.
+Lịch trên là heuristic của code, không phải kết quả tối ưu được chứng minh từ WE.
+
+\section{WE xác suất top-$K$ và chọn đi MILP}
+WE lấy cảm hứng từ Seda và cộng sự.\footnote{P.~Seda và cộng sự, ``The Minimization of Public Facilities With Enhanced Genetic Algorithms Using War Elimination,'' \emph{IEEE Access}, 2019, \href{https://doi.org/10.1109/ACCESS.2019.2891424}{doi}. Pool top-$K$ và acquisition dưới đây là thiết kế của mô hình hiện tại, không phải toàn bộ toán tử WE gốc.}
+Không dùng \code{minimum_gap_pairs()}, matching, bye hoặc migration trong luồng chính hiện tại.
+Với $M=64$, lấy mẫu primitives Gaussian cho ứng viên chưa exact, rồi clip như trên; giữ nguyên exact:
+\[
+\mathbf m_i^{(b)}=\mathcal P(\widehat{\mathbf m}_i+\widehat\Sigma_i^{1/2}\xi_i^{(b)}),
+\qquad \xi_i^{(b)}\sim\mathcal N(0,I).
+\]
+Code giữ covariance trong từng ứng viên, nhưng lấy nhiễu độc lập giữa ứng viên. Phân phối sau clip không còn Gaussian nguyên vẹn.
+Mỗi lượt xếp theo $(Q_t,i)$, rồi tính
+\[
+\pi_i=\frac1M\sum_b\ind\{\rank_i^{(b)}\le K_t\},\qquad
+\bar R_i=\frac1M\sum_b\rank_i^{(b)}.
+\]
+Thứ tự tạm:
+\[
+(-\pi_i,\bar R_i,Q_t(\widehat{\mathbf m}_i),i).
+\]
+Chọn đánh giá thật thuộc nguyên lý model management.\footnote{Y.~Jin, ``Surrogate-assisted evolutionary computation: Recent advances and future challenges,'' \emph{Swarm and Evolutionary Computation}, 1(2), 61--70, 2011, \href{https://doi.org/10.1016/j.swevo.2011.05.001}{doi}. Nguồn cho phối hợp surrogate và đánh giá thật; không trực tiếp quy định ba tập cụ thể ở đây.}
+\begin{enumerate}
+\item Elite: ứng viên chưa exact đầu tiên trong top-$K_t$ theo thứ tự tạm, nếu tồn tại.
+\item Audit: mỗi $5$ thế hệ, lấy đều ngẫu nhiên một ứng viên chưa exact ngoài top-$K_t$, nếu còn ngân sách và có ứng viên.
+\item Boundary: điền ngân sách còn lại theo
+$(-\pi_i(1-\pi_i),|\bar R_i-K_t|,\bar R_i,i)$.
+\end{enumerate}
+Ngân sách chung mặc định $4$; các tập rời nhau. Tỷ lệ $1+3$ hoặc $1+1+2$ chỉ đúng khi đủ ứng viên cho các vai trò.
+Trước đánh giá lưu $Q_t$ trung tâm của cá thể thứ $K_t$ trong thứ tự tạm làm cut; đây không phải quantile exact của toàn pool.
+Sau MILP, thay mean bằng exact và covariance bằng $0$. Xếp hạng lại bằng cùng seed lấy mẫu, để không thay nhiễu chuẩn của những ứng viên khác.
+
+Số elite exact được bảo vệ:
+\[
+E_t=\min\{K_t,\max(1,\lceil0.15K_t\rceil)\}.
+\]
+Bắt đầu từ incumbent, thêm exact tốt nhất theo $Q_0$ tới $E_t$ nếu có đủ, rồi điền theo thứ tự xác suất tới $K_t$.
+Không bảo đảm tất cả cá thể sống sót đều exact. Chỉ incumbent báo cáo có nhãn MILP.
+
+\section{CMA: proposal và cập nhật từ mẫu exact}
+Nền tảng công thức tham khảo Hansen.\footnote{N.~Hansen, ``The CMA Evolution Strategy: A Tutorial,'' 2016, \href{https://arxiv.org/abs/1604.00772}{arXiv:1604.00772}. Code chỉ cập nhật bằng mẫu exact đã được chọn lọc, có reflection, không có gating $h_\sigma$; không đồng nhất CMA-ES chuẩn.}
+Chỉ số $k$ dưới đây đếm lần cập nhật CMA, không phải thế hệ WE. Ban đầu mean bằng seed incumbent chuẩn hóa, $C_0=I$, $p_{\sigma,0}=p_{c,0}=0$, $\sigma_0=0.08$.
+\[
+v_j=\mu_k+\sigma_k C_k^{1/2}\xi_j,\quad
+\phi(v)=1-|\operatorname{mod}(v,2)-1|,\quad
+X_j=b_{\min}+L\odot\operatorname{reshape}(\phi(v_j)).
+\]
+Không tự recenter mean về incumbent mới. Nhãn exact CMA có cùng version được gom, có thể qua nhiều thế hệ; khi có ít nhất $2$ thì chọn hai tốt nhất theo $Q_t$ hiện tại.
+Mẫu không được MILP chọn không tham gia cập nhật. Các mẫu gom có thể từng được đánh giá ở những thế hệ trước, với lịch ngưỡng khác.
+\[
+w_i=\frac{\log(2.5)-\log i}{\sum_{j=1}^2[\log(2.5)-\log j]},\quad i=1,2,
+\quad\mu_{\rm eff}=1/\sum_iw_i^2,
+\]
+\[
+y_i=(\vct(\widetilde X_i)-\mu_k)/\sigma_k,\qquad y_w=\sum_iw_iy_i.
+\]
+\[
+c_c=\frac{4+\mu_{\rm eff}/d}{d+4+2\mu_{\rm eff}/d},\quad
+c_\sigma=\frac{\mu_{\rm eff}+2}{d+\mu_{\rm eff}+5},\quad
+c_1=\frac2{(d+1.3)^2+\mu_{\rm eff}},
+\]
+\[
+c_\mu=\min\left(1-c_1,\frac{2(\mu_{\rm eff}-2+1/\mu_{\rm eff})}{(d+2)^2+\mu_{\rm eff}}\right),
+\quad d_\sigma=1+2\max\left(0,\sqrt{\frac{\mu_{\rm eff}-1}{d+1}}-1\right)+c_\sigma.
+\]
+\[
+p_{\sigma,k+1}=(1-c_\sigma)p_{\sigma,k}
++\sqrt{c_\sigma(2-c_\sigma)\mu_{\rm eff}}C_k^{-1/2}y_w,
+\]
+\[
+p_{c,k+1}=(1-c_c)p_{c,k}+\sqrt{c_c(2-c_c)\mu_{\rm eff}}y_w,
+\qquad\mu_{k+1}=\sum_iw_i\vct(\widetilde X_i),
+\]
+\[
+C_{k+1}=(1-c_1-c_\mu)C_k+c_1p_{c,k+1}p_{c,k+1}^\top
++c_\mu\sum_iw_iy_iy_i^\top+10^{-12}I.
+\]
+Code đối xứng hóa $C$, dùng eigenvalue floor $10^{-12}$ khi lấy căn/nghịch căn.
+\[
+\chi_d=\sqrt d(1-1/(4d)+1/(21d^2)),\quad
+a_k=\clip\left(\frac{c_\sigma}{d_\sigma}(\norm{p_{\sigma,k+1}}/\chi_d-1),-1,1\right),
+\]
+\[
+\sigma_{k+1}=\clip(\sigma_ke^{a_k},0.005,0.35).
+\]
+Chọn sống sót WE được thực hiện trước bước cập nhật CMA; CMA cập nhật chỉ ảnh hưởng proposal về sau.
+
+\section{Bộ học weights theo context}
+\subsection{Context và miền ma trận}
+Tài liệu gọi ma trận là $B$, vector weights là $\vartheta$; code đặt tên ma trận này là \code{vartheta} hoặc \code{matrix}.
+Context chung:
+\[
+c=[1,C_{\rm ref},\clip(\bar p_{\rm ref},0,1),\clip(\bar n_{\rm ref},0,1),
+\clip(\rho_{P,\rm ref}^{\max},0,1)]^\top,\quad\vartheta=Bc.
+\]
+Reference là record lớn nhất theo $(\ind\{V\le10^{-12}\},\#\mathrm{served},S,-N,-P)$ trong archive.
+Nếu tất cả record chưa khả thi, quy tắc này không ưu tiên record có $V$ nhỏ nhất. Reference không nhất thiết là incumbent.
+\[
+B_0=\begin{bmatrix}1/3&0&0&0&0\\1/3&0&0&0&0\\1/3&0&0&0&0\end{bmatrix}.
+\]
+Với mọi đỉnh $v\in\{1\}\times\{0,1\}^4$:
+\[
+Bv\ge0,\qquad \mathbf1^\top B_{:,0}=1,\quad
+\mathbf1^\top B_{:,j}=0\ (j=1,\ldots,4).
+\]
+Do tính affine, điều kiện trên bảo đảm simplex trên toàn $\{1\}\times[0,1]^4$ trong toán học chính xác.
+Code còn chặn weights âm về $0$ và chuẩn hóa tổng để xử lý sai số số học.
+
+\subsection{Tạo cặp ưu tiên}
+Nhãn theo cặp và hinge tham khảo learning-to-rank.\footnote{T.~Joachims, ``Optimizing Search Engines using Clickthrough Data,'' KDD, 133--142, 2002, \href{https://www.cs.cornell.edu/~tj/publications/joachims_02c.pdf}{bản tác giả}. Labels tài nguyên, context và bài toán hai bước dưới đây là thiết kế trong code, không lấy nguyên từ bài này.}
+Chỉ nhận quan sát MILP mới theo khóa placement; lưu $V$ làm metadata, không dùng $V$ hoặc $\varepsilon_t$ lọc cặp.
+Hai quan sát phải có cùng số UE phục vụ và $|S_i-S_j|\le10^{-9}$.
+Yêu cầu $d_{ij}=\norm{r_i-r_j}\ge0.002$ và một bên trội Pareto với dung sai $10^{-9}$ theo từng thành phần.
+Gọi $r^+$ tốt hơn, $r^-$ kém hơn:
+\[
+\Delta r_{ij}=r^- -r^+,\qquad m_{ij}=\min(0.02,\max(0.003,0.1d_{ij})).
+\]
+Context của cặp là context đã lưu của quan sát mới hơn, không phải trung bình hai context.
+Mỗi quan sát chỉ so với tối đa $80$ quan sát trước; không tạo lại cặp khi cả hai đã qua lượt xử lý.
+Mỗi lần lấy tối đa $64$ cặp mới có $d_{ij}$ lớn nhất; bộ nhớ giữ $256$ cặp sau thao tác nối và cắt.
+
+Trọng số theo context hiện tại, bỏ intercept:
+\[
+\varpi_{ij}=1-\tfrac14\norm{\widetilde c_t-\widetilde c_{ij}}^2,\quad
+\alpha_{ij}=\varpi_{ij}/\sum\varpi.
+\]
+Code không thêm positive floor; nếu tổng bằng $0$ thì không fit. Trong miền $[0,1]^4$, $\varpi\ge0$ về mặt toán học.
+
+\subsection{Cặp sai số dự đoán}
+Chỉ dùng hai quan sát có forecast trước MILP, cùng batch, context bằng nhau chính xác trong mảng, cùng số UE exact và $|S_i-S_j|\le10^{-9}$.
+Không cần quan hệ Pareto ở loại cặp này.
+\[
+\delta_{ij}=(\widehat r_j-r_j)-(\widehat r_i-r_i),\qquad
+e_{ij}(B)=\delta_{ij}^\top Bc_{ij}.
+\]
+Lookback $80$; lấy $64$ cặp dự đoán mới cuối cùng, không phải $64$ cặp có sai số lớn nhất. Giữ $256$ cặp gần nhất và tính trọng số context tương tự.
+\[
+L_{\rm pred}(B)=\tfrac12\sum_{(i,j)\in\mathcal D}\widetilde\alpha_{ij}e_{ij}(B)^2.
+\]
+Nếu không có cặp dự đoán có trọng số dương, loss này bằng $0$, không tạo dữ liệu giả có residual bằng $0$.
+
+\subsection{Hai bước CVXPY}
+\[
+L_{\rm pref}(B)=\sum_{(i,j)\in\mathcal P}\alpha_{ij}
+[m_{ij}-\Delta r_{ij}^\top Bc_{ij}]_+.
+\]
+Bước một chỉ tối thiểu hóa $L_{\rm pref}$ trên miền $\mathcal B$ ở trên; gọi loss đo lại tại nghiệm trả về là $\widehat L_1$.
+Đây là nghiệm số của solver, không phải giá trị tối ưu chính xác đã biết bằng ký hiệu đóng.
+Bước hai:
+\[
+\begin{aligned}
+\min_{B\in\mathcal B}\quad&L_{\rm pred}(B)+\frac{0.08}{2}\norm{B-\bar B_{\rm prev}}_F^2
++\frac{0.20}{2}\norm{B-B_{\rm prev}}_F^2\\
+\text{s.t.}\quad&L_{\rm pref}(B)\le\widehat L_1+5\cdot10^{-8}.
+\end{aligned}
+\]
+Sau solve, code kiểm tra loss đo lại $\le\widehat L_1+10^{-7}$. Bảo vệ loss tổng, không bảo đảm loss từng cặp không tăng.
+Hinge affine, bình phương affine và ràng buộc lồi tạo bài toán lồi.\footnote{S.~Boyd và L.~Vandenberghe, \emph{Convex Optimization}, Cambridge University Press, 2004, Chương~3--4, \href{https://stanford.edu/~boyd/cvxbook/}{bản tác giả}. Tính lồi chỉ áp dụng bộ học $B$ với dữ liệu cố định.}
+CVXPY mô hình hóa bài toán, mặc định CLARABEL và có fallback solver.\footnote{S.~Diamond và S.~Boyd, ``CVXPY: A Python-Embedded Modeling Language for Convex Optimization,'' \emph{JMLR}, 17(83), 1--5, 2016, \href{https://www.jmlr.org/papers/v17/15-408.html}{bài báo}. Công cụ không tự xác định mục tiêu vận hành.}
+Nghiệm số phải qua kiểm tra hữu hạn/simplex; lỗi hoặc thiếu dữ liệu thì giữ ma trận cũ.
+Với $g$ lần cập nhật thành công, tính cả $B_0$:
+\[
+\bar B_g=\bar B_{g-1}+\frac{B_g-\bar B_{g-1}}{g+1}.
+\]
+Fit chỉ khi có ít nhất $3$ cặp ưu tiên lưu và có cặp ưu tiên hoặc dự đoán mới.
+Warmup fit sau seed batch; sau đó tại đầu thế hệ $11,21,31,\ldots$ với chu kỳ mặc định $10$.
+Không có lần fit bắt buộc cuối run: những quan sát sau lượt fit cuối có thể chưa được tiêu thụ vào bộ học weights.
+
+Labels Pareto không xác định đầy đủ đánh đổi giữa nghiệm không trội nhau. Loss dự đoán có thể ưu tiên tài nguyên dễ dự đoán, không tự chứng minh tài nguyên đó quan trọng nhất.
+Weights ổn định, kể cả gần $(1/3,1/3,1/3)$, không tự chứng minh lỗi code hoặc tối ưu vận hành.
+
+\section{Thứ tự thực thi mỗi thế hệ}
+Sau warmup và khởi tạo CMA, mỗi thế hệ thực hiện:
+\begin{enumerate}
+\item Đặt generation và $\varepsilon_t$; fit weights nếu tới chu kỳ.
+\item Đóng băng context, archive và transition; dự đoán lại bố mẹ.
+\item Chừa chỗ sinh, cắt bố mẹ nếu cần, sinh brood GA và proposal CMA.
+\item Dự đoán, loại trùng và tính xác suất top-$K$ toàn pool.
+\item Lưu cut tạm; chọn elite, boundary, audit trước khi biết nhãn mới.
+\item Đánh giá các tập theo thứ tự elite, boundary, audit; thay exact và xét incumbent.
+\item Tính lại thứ hạng với cùng seed; bảo vệ incumbent/elite exact và chọn quần thể sống sót.
+\item Cập nhật CMA nếu đủ mẫu exact cùng version.
+\item Commit transition, cắt cửa sổ và bỏ snapshot đóng băng; ghi log và incumbent snapshot.
+\end{enumerate}
+Quan sát cho bộ học weights được xếp hàng riêng và chỉ tiêu thụ tại lần update weights.
+Đánh giá cache hit có thể thêm archive record ở một số đường gọi; số record không luôn bằng số lần giải MILP thực sự.
+
+\section{Biểu đồ và ý nghĩa thống kê}
+\subsection{Service và tài nguyên}
+Biểu đồ theo thế hệ dùng raw snapshot của incumbent:
+\[
+N_{\rm served}(t),\quad\bar p_t,\quad\bar n_t.
+\]
+Trước khi có incumbent khả thi, $C$ có thể giảm khi $V$ được cải thiện. Sau khả thi, comparator bảo vệ số UE nhưng không bảo vệ công suất/PRB riêng lẻ.
+Tài nguyên rời rạc nên đường có bậc thang; không yêu cầu trơn hoặc đơn điệu.
+Riêng panel service trong \code{draw_figure()} dùng cumulative maximum của served fraction; không lọc lại feasibility trước khi lấy maximum. Không đồng nhất đường đó với raw service/resource plot.
+
+\subsection{Sai số theo từng thế hệ}
+Với $\mathcal A_t$ là mọi forecast được kiểm tra MILP trong thế hệ:
+\[
+{\rm MAE}_J(t)=\frac1{|\mathcal A_t|}\sum_{i\in\mathcal A_t}|J_i^{\rm exact}-\widehat J_i|.
+\]
+Hai cost được tính cùng weights đang đóng băng. Không dùng rolling window $20$ mẫu; không đo toàn bộ pool chưa có nhãn.
+Nếu không có kiểm tra thì NaN, không phải $0$.
+
+\subsection{Khoảng dự đoán danh nghĩa}
+Delta method cho phương sai cost.\footnote{G.~W.~Oehlert, ``A Note on the Delta Method,'' \emph{The American Statistician}, 46(1), 27--29, 1992, \href{https://doi.org/10.1080/00031305.1992.10475842}{doi}. Xấp xỉ bậc nhất không bảo đảm coverage hữu hạn mẫu, đặc biệt ở điểm không khả vi.}
+\[
+\widehat\sigma_J^2=g^\top\widehat\Sigma g,\qquad
+I_i=[\widehat J_i-z_{0.975}\widehat\sigma_{J,i},\widehat J_i+z_{0.975}\widehat\sigma_{J,i}].
+\]
+Ở đây $g$ có thành phần nền $\beta P_u^{\max}/\sum_vP_v^{\max}$ cho tọa độ power và $\mu L_{N,u}/135$ cho tọa độ PRB.
+Với phần $\eta\max(m_{P,1},\ldots,m_{P,U},\bar n)$, code chia đều $\eta$ giữa các nhánh active (hòa trong $10^{-12}$). Nhánh $\bar n$ đóng góp theo gradient $(L_{N,u}/135)_u$; các tọa độ $C,S$ có gradient bằng $0$.
+Code không lấy đạo hàm qua clip và không mô hình hóa bất định của weights trong khoảng này.
+Coverage chỉ tổng hợp các check có cờ đủ record; thiếu dữ liệu trả NaN.
+Ngưỡng $95\%$ là danh nghĩa, không phải chứng nhận xác suất.
+
+\subsection{Audit rescue}
+\[
+R_i=\ind\{Q_t(m_i^{\rm exact})<_{\rm lex}Q_t^{\rm cut}\}.
+\]
+Tổng hợp trung bình trên audit của riêng thế hệ. Đây là rescue so với cut tạm, không phải false-drop rate của toàn pool.
+Không audit thì NaN; một audit thì chỉ có $0$ hoặc $1$. Biểu đồ dùng dấu điểm riêng, không nối qua thế hệ thiếu audit.
+
+\section{Các khẳng định toán học và giới hạn}
+\begin{proposition}
+Với weights kernel cố định, không âm và tổng bằng $1$, $\sum_\ell w_\ell\Delta m_\ell$ là nghiệm duy nhất của
+$\min_d\sum_\ell w_\ell\norm{d-\Delta m_\ell}^2$.
+\end{proposition}
+\begin{proof}Gradient bằng $2(d-\sum_\ell w_\ell\Delta m_\ell)$, Hessian bằng $2I$.\end{proof}
+Đây là tối ưu của phép nội suy đã định nghĩa, không phải bảo đảm dự đoán đúng môi trường.
+
+\begin{proposition}
+Dưới mô hình xác suất đã chọn, tập $A$ gồm $K$ xác suất $\pi_i$ lớn nhất tối đa hóa số tinh hoa kỳ vọng được giữ.
+\end{proposition}
+\begin{proof}$\E|A\cap\mathcal T|=\sum_{i\in A}\Prob(i\in\mathcal T)=\sum_{i\in A}\pi_i$.\end{proof}
+Code chỉ có ước lượng Monte Carlo; exact elite bắt buộc còn giới hạn các tập được chọn. Không suy ra tối ưu toàn cục của WE từ mệnh đề này.
+
+Với dữ liệu cố định, bộ học $B$ bước hai strongly convex do $0.08+0.20>0$. Nếu khả thi thì nghiệm toán học là duy nhất; nghiệm số vẫn có dung sai.
+Không suy ra $B_t$ hội tụ theo thế hệ khi dữ liệu/context thay đổi.
+
+Sau khi incumbent khả thi, số UE của incumbent không giảm: ứng viên không khả thi hoặc có ít UE hơn không thể thay nó trong cấu hình $K$ cố định hiện tại (bước thay đổi $C$ lớn hơn dung sai $10^{-12}$).
+Số lần tăng UE hữu hạn không chứng minh placement hội tụ hoặc phục vụ được tất cả UE.
+Không có định lý trong code/tài liệu này chứng minh GA--WE--CMA tốt hơn mọi PSO, hoặc tìm tối ưu toàn cục trong ngân sách hữu hạn.
+
+\appendix
+\section{Thông số mặc định và nguồn đối chiếu}
+\begin{longtable}{p{0.57\textwidth}p{0.34\textwidth}}
+\toprule Thông số & Giá trị mặc định\\\midrule\endhead
+Vùng; UAV; UE & $1000\times1000$ m; $5$; $50$\\
+UE demand; phân bố; seed & $5,10,15$ Mbps; uniform; $2026$\\
+PRB chung; băng thông mỗi PRB & $135$; $360$ kHz\\
+Trần power UAV; link & $2$ W; $1$ W\\
+PRB link; bước công suất & $10$; $0.1$ W\\
+Độ cao; nửa góc mở & $250$--$300$ m; $30^\circ$--$60^\circ$\\
+Separation; carrier; noise figure & $250$ m; $3.5$ GHz; $9$ dB\\
+Nhiệt độ; LoS urban; excess loss & $290$ K; $(9.61,0.16)$; $(1,20)$ dB\\
+Population đầu; cap; generations & $400$; $4000$; $400$\\
+Seed MILP; ngân sách mỗi thế hệ & $80$; $4$\\
+Chu kỳ weights; MC; audit & $10$; $64$; $5$ thế hệ\\
+CMA proposal; selected exact & tối đa $8$; $2$\\
+CMA sigma ban đầu; miền sigma & $0.08$; $[0.005,0.35]$\\
+SBX; mutation probability; sigma & $18$; $0.12$; $0.08$\\
+Con mỗi cặp; elite bảo vệ & tối đa $50$; $0.15$\\
+Kernel neighbors; $l_s,l_a$ & $12$; $1,0.5$\\
+Record tối thiểu; cửa sổ & $20$; $120$\\
+Regularization average; time & $0.08$; $0.20$\\
+Lookback; cặp mới; bộ nhớ cặp & $80$; tối đa $64$; $256$\\
+Margin min/max/scale & $0.003$; $0.02$; $0.1$\\
+Ngưỡng resource distance & $0.002$\\
+Exact solver gap; time; threads & $0$; vô hạn; $8$\\
+\bottomrule
+\end{longtable}
+Tuple height/theta trong \code{PhysConstant} chỉ xác định biên cho optimizer chính; gene vẫn liên tục, không phải grid $6\times7$.
+CLI có thể ghi đè population, cap, generations, seed, budgets, confidence và phân bố UE. \code{--quick} chỉ đổi thành $3$ UAV/$15$ UE.
+Không dùng cấu hình của các runner baseline hoặc sweep khác để mặc định cho run \code{main.py}.
+
+\begin{longtable}{p{0.34\textwidth}p{0.57\textwidth}}
+\toprule Module & Nội dung đối chiếu\\\midrule\endhead
+\code{config.py}, \code{scenario.py} & Vật lý, ngân sách, môi trường\\
+\code{main.py}, \code{optimizer.py} & CLI và lắp ghép luồng chính\\
+\code{env.py} & Channel, footprint, rate\\
+\code{milp.py}, \code{evaluation.py} & Service modes, objective, solver/cache\\
+\code{ga.py} & Settings, violation, ba phép so sánh liên quan, SBX/mutation\\
+\code{contextual_ga.py} & Context, sinh brood, lịch quần thể\\
+\code{surrogate.py} & Transition kernel, raw residual covariance, exact replacement\\
+\code{joint_topk_we.py} & Pool, Monte Carlo, acquisition, survival, vòng lặp\\
+\code{cma.py} & Reflection và cập nhật CMA\\
+\code{contextual_weight_audit.py} & Quan sát, tạo cặp, điều kiện học\\
+\code{preference_weights.py} & Hàm hai bước đang dùng: \code{fit_history_contextual_weights}\\
+\code{plots.py} & Tổng hợp chất lượng theo thế hệ và hình\\
+\bottomrule
+\end{longtable}
+Các hàm học một bước vẫn tồn tại trong \code{preference_weights.py} không phải hàm đang được gọi ở luồng contextual chính.
+Nguồn tài liệu chứng minh các nguyên lý thành phần; tham số heuristic và kết hợp hiện tại cần được kiểm chứng bằng thực nghiệm độc lập.
+\end{document}
